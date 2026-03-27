@@ -218,6 +218,27 @@ else if ($action === 'summary') {
     echo json_encode(['success' => true, 'data' => $summary]);
 }
 
+// Cashier breakdown
+else if ($action === 'cashier_breakdown') {
+    $days = intval($_GET['days'] ?? 30);
+    $data = $db->fetchAll("
+        SELECT
+            u.id,
+            u.name AS cashier,
+            COUNT(s.id)                   AS transactions,
+            SUM(s.total_amount)           AS total_revenue,
+            ROUND(AVG(s.total_amount), 2) AS avg_transaction,
+            SUM(s.tax_amount)             AS total_tax
+        FROM sales s
+        JOIN users u ON s.cashier_id = u.id
+        WHERE s.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+          AND (s.voided = 0 OR s.voided IS NULL)
+        GROUP BY u.id, u.name
+        ORDER BY total_revenue DESC
+    ", [$days]);
+    echo json_encode(['success' => true, 'data' => $data]);
+}
+
 else {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid action']);
