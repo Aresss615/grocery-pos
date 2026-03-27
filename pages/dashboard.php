@@ -17,18 +17,19 @@ $today = date(DATE_FORMAT);
 // ── Stats ───────────────────────────────────────────────────
 $total_products = $db->fetchOne("SELECT COUNT(*) AS c FROM products WHERE active = 1");
 
-$sales_today = $db->fetchOne(
-    "SELECT COUNT(*) AS cnt, COALESCE(SUM(total_amount),0) AS rev,
-            COALESCE(SUM(tax_amount),0) AS vat
-     FROM sales WHERE DATE(created_at) = ? AND voided = 0",
-    [$today]
-);
-
-// Handle missing voided column gracefully
-if (!$sales_today) {
+try {
     $sales_today = $db->fetchOne(
-        "SELECT COUNT(*) AS cnt, COALESCE(SUM(total_amount),0) AS rev, COALESCE(SUM(tax_amount),0) AS vat
-         FROM sales WHERE DATE(created_at) = ?", [$today]
+        "SELECT COUNT(*) AS cnt, COALESCE(SUM(total_amount),0) AS rev,
+                COALESCE(SUM(tax_amount),0) AS vat
+         FROM sales WHERE DATE(created_at) = ? AND voided = 0",
+        [$today]
+    );
+} catch (Exception $e) {
+    $sales_today = $db->fetchOne(
+        "SELECT COUNT(*) AS cnt, COALESCE(SUM(total_amount),0) AS rev,
+                COALESCE(SUM(tax_amount),0) AS vat
+         FROM sales WHERE DATE(created_at) = ?",
+        [$today]
     );
 }
 

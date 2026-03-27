@@ -65,10 +65,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Check if z-read already done today
         if ($read_type === 'z_read') {
-            $existing = $db->fetchOne(
-                "SELECT id FROM register_reads WHERE read_type = 'z_read' AND read_date = ?",
-                [$today]
-            );
+            try {
+                $existing = $db->fetchOne(
+                    "SELECT id FROM register_reads WHERE read_type = 'z_read' AND read_date = ?",
+                    [$today]
+                );
+            } catch (Exception $e) {
+                $existing = null;
+            }
             if ($existing) {
                 redirectWithMessage(BASE_URL . '/pages/manager.php?tab=zread',
                     "A Z-Read has already been generated for today ($today). Only one Z-Read is allowed per day.", 'warning');
@@ -224,12 +228,16 @@ try {
 }
 
 // ── Past register reads ───────────────────────────────────────
-$past_reads = $db->fetchAll(
-    "SELECT rr.*, u.name AS generated_by_name
-     FROM register_reads rr
-     LEFT JOIN users u ON rr.generated_by = u.id
-     ORDER BY rr.created_at DESC LIMIT 30"
-);
+try {
+    $past_reads = $db->fetchAll(
+        "SELECT rr.*, u.name AS generated_by_name
+         FROM register_reads rr
+         LEFT JOIN users u ON rr.generated_by = u.id
+         ORDER BY rr.created_at DESC LIMIT 30"
+    );
+} catch (Exception $e) {
+    $past_reads = [];
+}
 
 // ── Cashiers list (for remittal form) ─────────────────────────
 $cashiers = $db->fetchAll(
@@ -237,22 +245,30 @@ $cashiers = $db->fetchAll(
 );
 
 // ── Remittal history ──────────────────────────────────────────
-$remittals = $db->fetchAll(
-    "SELECT cr.*, u.name AS cashier_name, m.name AS manager_name
-     FROM cash_remittals cr
-     LEFT JOIN users u ON cr.cashier_id = u.id
-     LEFT JOIN users m ON cr.manager_id = m.id
-     WHERE DATE(cr.created_at) = ?
-     ORDER BY cr.created_at DESC",
-    [$today]
-);
+try {
+    $remittals = $db->fetchAll(
+        "SELECT cr.*, u.name AS cashier_name, m.name AS manager_name
+         FROM cash_remittals cr
+         LEFT JOIN users u ON cr.cashier_id = u.id
+         LEFT JOIN users m ON cr.manager_id = m.id
+         WHERE DATE(cr.created_at) = ?
+         ORDER BY cr.created_at DESC",
+        [$today]
+    );
+} catch (Exception $e) {
+    $remittals = [];
+}
 $remittal_total = array_sum(array_column($remittals, 'amount'));
 
 // ── Z-Read check for today ────────────────────────────────────
-$zread_done_today = $db->fetchOne(
-    "SELECT id, created_at FROM register_reads WHERE read_type='z_read' AND read_date=?",
-    [$today]
-);
+try {
+    $zread_done_today = $db->fetchOne(
+        "SELECT id, created_at FROM register_reads WHERE read_type='z_read' AND read_date=?",
+        [$today]
+    );
+} catch (Exception $e) {
+    $zread_done_today = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fil">
