@@ -1,0 +1,263 @@
+/**
+ * J&J Grocery POS — Theme System
+ * Light (default) + Dark mode via data-theme="dark" on <html>
+ * Include AFTER main.css on every page.
+ */
+
+/* ============================================================
+   Dark Theme Token Overrides
+   ============================================================ */
+[data-theme="dark"] {
+    --c-bg:        #111827;
+    --c-surface:   #1F2937;
+    --c-border:    #374151;
+    --c-muted:     #6B7280;
+    --c-text:      #F9FAFB;
+    --c-text-soft: #9CA3AF;
+    --c-primary-fade: rgba(211, 47, 47, 0.18);
+
+    --c-success-light: #064E3B;
+    --c-warning-light: #451A03;
+    --c-danger-light:  #450A0A;
+    --c-info-light:    #0C1A3A;
+
+    /* Legacy aliases */
+    --color-bg:     var(--c-bg);
+    --color-card:   var(--c-surface);
+    --color-border: var(--c-border);
+    --color-accent: #1F2937;
+    --color-dark:   var(--c-text);
+    --color-gray:   var(--c-text-soft);
+}
+
+/* ── Base ──────────────────────────────────────────────────── */
+[data-theme="dark"] body {
+    background: var(--c-bg);
+    color: var(--c-text);
+}
+
+/* ── Navbar ────────────────────────────────────────────────── */
+[data-theme="dark"] .navbar {
+    background: linear-gradient(90deg, #1a0505 0%, #2d0d0d 100%);
+    border-bottom-color: #3d1010;
+}
+[data-theme="dark"] .nav-link { color: rgba(249,250,251,.75); }
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-link.active { color: #fff; background: rgba(255,255,255,.08); }
+[data-theme="dark"] .brand-name { color: #fff; }
+[data-theme="dark"] .user-name  { color: #f9fafb; }
+[data-theme="dark"] .user-role  { color: #9CA3AF; }
+
+/* ── Cards ─────────────────────────────────────────────────── */
+[data-theme="dark"] .card,
+[data-theme="dark"] .card-flat {
+    background: var(--c-surface);
+    border-color: var(--c-border);
+}
+[data-theme="dark"] .card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.4); }
+
+/* ── Stat cards ────────────────────────────────────────────── */
+[data-theme="dark"] .stat-card {
+    background: var(--c-surface);
+    border-color: var(--c-border);
+}
+[data-theme="dark"] .stat-label { color: var(--c-text-soft); }
+[data-theme="dark"] .stat-value { color: var(--c-text); }
+[data-theme="dark"] .stat-card.stat-success { background: #064E3B22; border-left-color: var(--c-success); }
+[data-theme="dark"] .stat-card.stat-info    { background: #0C1A3A22; border-left-color: var(--c-info); }
+[data-theme="dark"] .stat-card.stat-warning { background: #451A0322; border-left-color: var(--c-warning); }
+
+/* ── Tables ────────────────────────────────────────────────── */
+[data-theme="dark"] .data-table thead { background: #111827; }
+[data-theme="dark"] .data-table th    { color: var(--c-text-soft); border-bottom-color: var(--c-border); }
+[data-theme="dark"] .data-table td    { border-bottom-color: var(--c-border); color: var(--c-text); }
+[data-theme="dark"] .data-table tbody tr:hover { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .data-table code  { background: #111827; color: #9CA3AF; }
+
+/* Inventory table specific */
+[data-theme="dark"] .inventory-table th { background: #1a0505 !important; }
+[data-theme="dark"] .inventory-table td { border-bottom-color: var(--c-border); }
+[data-theme="dark"] .inventory-table tbody tr:hover { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .low-stock  { background: #451A0330 !important; color: #fbbf24 !important; }
+[data-theme="dark"] .out-of-stock { background: #450A0A30 !important; color: #fca5a5 !important; }
+
+/* Users/master tables */
+[data-theme="dark"] .users-table th  { background: #1a0505 !important; }
+[data-theme="dark"] .users-table td  { border-bottom-color: var(--c-border); color: var(--c-text); }
+[data-theme="dark"] .users-table tbody tr:hover { background: rgba(255,255,255,.04); }
+
+/* ── Forms ─────────────────────────────────────────────────── */
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background: #111827;
+    border-color: var(--c-border);
+    color: var(--c-text);
+}
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+    border-color: var(--c-primary);
+    background: #111827;
+}
+[data-theme="dark"] ::placeholder { color: #6B7280; }
+[data-theme="dark"] label { color: var(--c-text-soft); }
+
+/* ── Modals ────────────────────────────────────────────────── */
+[data-theme="dark"] .modal-content {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+}
+[data-theme="dark"] .modal-header { border-bottom-color: var(--c-border); }
+[data-theme="dark"] .modal-close  { color: var(--c-text-soft); }
+[data-theme="dark"] .modal-close:hover { color: var(--c-text); }
+
+/* ── Buttons ───────────────────────────────────────────────── */
+[data-theme="dark"] .btn-outline {
+    border-color: var(--c-border);
+    color: var(--c-text);
+}
+[data-theme="dark"] .btn-outline:hover { background: rgba(255,255,255,.08); }
+[data-theme="dark"] .btn-ghost { color: var(--c-text); }
+[data-theme="dark"] .btn-ghost:hover { background: rgba(255,255,255,.08); }
+
+/* ── Alerts & Low-stock ────────────────────────────────────── */
+[data-theme="dark"] .alert-success { background: #064E3B33; border-color: var(--c-success); color: #6ee7b7; }
+[data-theme="dark"] .alert-error   { background: #450A0A33; border-color: var(--c-danger);  color: #fca5a5; }
+[data-theme="dark"] .alert-warning { background: #451A0333; border-color: var(--c-warning); color: #fcd34d; }
+[data-theme="dark"] .alert-info    { background: #0C1A3A33; border-color: var(--c-info);    color: #93c5fd; }
+
+[data-theme="dark"] .low-stock-alert {
+    background: #451A0322;
+    border-color: #f59e0b55;
+}
+
+/* ── Page header & misc ────────────────────────────────────── */
+[data-theme="dark"] .page-header { border-bottom-color: var(--c-border); }
+[data-theme="dark"] h1,h2,h3,h4  { color: var(--c-text); }
+[data-theme="dark"] p, [data-theme="dark"] span  { color: inherit; }
+[data-theme="dark"] .text-muted   { color: var(--c-text-soft) !important; }
+[data-theme="dark"] code          { background: #111827; color: #9CA3AF; }
+
+/* ── Login page ────────────────────────────────────────────── */
+[data-theme="dark"] .login-card { background: var(--c-surface); }
+
+/* ── Role badges ───────────────────────────────────────────── */
+[data-theme="dark"] .role-badge { background: #1e3a5f; color: #93c5fd; }
+[data-theme="dark"] .role-badge.role-admin { background: #4a0d2e; color: #f9a8d4; }
+
+/* ── Badges ────────────────────────────────────────────────── */
+[data-theme="dark"] .badge        { filter: brightness(0.85) saturate(0.8); }
+[data-theme="dark"] .badge-neutral { background: #374151; color: #9CA3AF; }
+
+/* ── Scrollbars (optional cosmetic) ─────────────────────────── */
+[data-theme="dark"] ::-webkit-scrollbar { width: 6px; height: 6px; }
+[data-theme="dark"] ::-webkit-scrollbar-track  { background: #111827; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb  { background: #374151; border-radius: 3px; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+
+/* ── Filter section (inventory page) ─────────────────────────  */
+[data-theme="dark"] .filter-section input,
+[data-theme="dark"] .filter-section select {
+    background: #111827 !important;
+    border-color: var(--c-border) !important;
+    color: var(--c-text) !important;
+}
+
+/* ── Tabs (manager / master-data pages) ──────────────────────── */
+[data-theme="dark"] .tabs,
+[data-theme="dark"] .tabs-container { border-bottom-color: var(--c-border); }
+[data-theme="dark"] .tab-btn,
+[data-theme="dark"] .tab-button { color: var(--c-text-soft); }
+[data-theme="dark"] .tab-btn.active,
+[data-theme="dark"] .tab-button.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
+[data-theme="dark"] .tab-content,
+[data-theme="dark"] .tab-pane { background: transparent; }
+
+/* ── Manager / misc tables ───────────────────────────────────── */
+[data-theme="dark"] .table         { background: var(--c-surface); }
+[data-theme="dark"] .table thead   { background: #111827; }
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td      { border-color: var(--c-border); color: var(--c-text); }
+[data-theme="dark"] .table tbody tr:hover { background: rgba(255,255,255,.04); }
+
+/* ============================================================
+   Light Theme Enhancements (make it less boring)
+   ============================================================ */
+.stat-card {
+    position: relative;
+    overflow: hidden;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--c-primary-fade);
+    pointer-events: none;
+}
+.stat-card.stat-success::before { background: rgba(46,125,50,.1); }
+.stat-card.stat-info::before    { background: rgba(21,101,192,.1); }
+.stat-card.stat-warning::before { background: rgba(230,81,0,.1); }
+
+/* Navbar gradient enhancement */
+.navbar {
+    background: linear-gradient(90deg, #B71C1C 0%, #D32F2F 60%, #C62828 100%) !important;
+}
+
+/* Page header bottom border */
+.page-header {
+    padding-bottom: var(--space-5);
+    margin-bottom: var(--space-6);
+    border-bottom: 2px solid var(--c-border);
+}
+
+/* Card hover lift */
+.card:hover {
+    transform: translateY(-1px);
+}
+
+/* Better badge contrast */
+.badge-primary { background: var(--c-primary); color: #fff; }
+
+/* ============================================================
+   Theme Toggle Button
+   ============================================================ */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    color: #fff;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: var(--radius-md);
+    font-size: .85rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    transition: var(--transition);
+    line-height: 1;
+}
+.theme-toggle:hover { background: rgba(255,255,255,.22); }
+.theme-toggle .tt-icon { font-size: 1rem; }
+
+/* ============================================================
+   Inline Script: apply saved theme before CSS paint (FOUC fix)
+   Paste this in <head> before the CSS links on every page:
+
+   <script>
+     (function(){
+       var t = localStorage.getItem('pos_theme') || 'light';
+       document.documentElement.setAttribute('data-theme', t);
+     })();
+   </script>
+   ============================================================ */

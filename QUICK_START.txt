@@ -1,0 +1,254 @@
+🚀 QUICK START GUIDE - J&J GROCERY POS
+
+═══════════════════════════════════════════════════════════════════════════
+
+1️⃣  DATABASE SETUP
+───────────────────────────────────────────────────────────────────────────
+
+Option A: Using phpMyAdmin
+   1. Go to http://localhost/phpmyadmin
+   2. Create new database: "grocery_pos"
+   3. Click Import tab
+   4. Upload: database/database.sql
+   5. Click Go
+
+Option B: Using MySQL Command Line
+   mysql -u root -p
+   CREATE DATABASE grocery_pos CHARACTER SET utf8mb4;
+   USE grocery_pos;
+   source database/database.sql;
+   EXIT;
+
+
+2️⃣  CONFIGURE DATABASE CONNECTION
+───────────────────────────────────────────────────────────────────────────
+
+Edit: config/constants.php
+
+Find these lines:
+   define('DB_HOST', 'localhost');
+   define('DB_USER', 'root');
+   define('DB_PASSWORD', '');
+   define('DB_NAME', 'grocery_pos');
+
+Change values to match your database setup.
+
+
+3️⃣  LOGIN TO THE SYSTEM
+───────────────────────────────────────────────────────────────────────────
+
+Go to: http://localhost/grocery-pos
+
+Default Credentials:
+┌─────────────────────────────────────┐
+│ Admin User:                         │
+│   Username: admin                   │
+│   Password: admin123                │
+├─────────────────────────────────────┤
+│ Cashier User:                       │
+│   Username: cashier                 │
+│   Password: cashier123              │
+└─────────────────────────────────────┘
+
+⚠️  IMPORTANT: Change these passwords immediately after first login!
+
+
+4️⃣  MAIN DASHBOARD
+───────────────────────────────────────────────────────────────────────────
+
+After login, you'll see:
+   • Total Products in Inventory
+   • Sales Count from Today
+   • Revenue from Today (in ₱)
+   • Total Users (admin only)
+   • Quick action buttons
+
+
+5️⃣  FOR ADMIN USERS - MANAGE YOUR STORE
+───────────────────────────────────────────────────────────────────────────
+
+📦 Add Products
+   Dashboard → Click + Add Product (or menu: Products)
+   • Name: "Rice 1kg" (required)
+   • Barcode: Leave empty (auto-generates) or enter custom
+   • Price: "50.00" (in ₱)
+   • Quantity: "100" (stock)
+   • Category: "Staples"
+   • Click: Add Product
+
+🔍 Search Products
+   On Products page → Type in search box
+   Searches by product name or barcode in real-time
+
+✏️  Edit Products
+   On Products page → Click ✏️ Edit button
+   Update name, price, quantity, category
+   Note: Barcode cannot be changed (locked)
+
+🗑️  Delete Products
+   On Products page → Click 🗑️ Remove button
+   Product becomes inactive (soft delete, recoverable)
+
+👥 Add Staff Users
+   Dashboard → Click Users (or menu: Users)
+   • Name: "Maria Santos"
+   • Username: "maria_santos" (must be unique)
+   • Password: Minimum 6 characters
+   • Role: Admin / Manager / Cashier
+   • Click: Add User
+
+🔑 Change User Password
+   On Users page → Click 🔑 Password button
+   Enter new password (minimum 6 chars)
+   Password must be confirmed
+
+⛔ Remove Users
+   On Users page → Click 🗑️ Remove button
+   User becomes inactive (can be reactivated if needed)
+
+
+6️⃣  FOR CASHIER USERS - PROCESS SALES
+───────────────────────────────────────────────────────────────────────────
+
+💳 Start Checkout
+   Dashboard → Click "💳 Complete Sale" or go to Sales page
+
+🔍 Add Items to Cart
+   Method 1: Click product buttons on left side
+   Method 2: Type product name/barcode in search → Press Enter
+   Quantity adjusts with +/- buttons
+
+💰 Payment Methods
+   ┌──────────────────────────────────────┐
+   │ Cash Payment:                        │
+   │ • Enter amount paid                  │
+   │ • Change calculated automatically   │
+   ├──────────────────────────────────────┤
+   │ GCash or Card:                       │
+   │ • No change calculation needed       │
+   └──────────────────────────────────────┘
+
+📄 Receipt
+   After checkout:
+   • Receipt displayed on screen
+   • Click 🖨️ Print to print
+   • Click "New Sale" to start next transaction
+
+
+7️⃣  PRICES & MONEY
+───────────────────────────────────────────────────────────────────────────
+
+€ Currency
+   All prices shown with ₱ symbol
+   Example: ₱1,234.56
+
+💱 VAT (Tax)
+   12% automatically added to every sale
+   Subtotal + (Subtotal × 12%) = Total
+   Example: ₱100 + ₱12 = ₱112
+
+💵 Payment Methods Supported
+   • Cash (show change)
+   • GCash (mobile wallet)
+   • Credit/Debit Card
+
+
+8️⃣  IMPORTANT KEYBOARD SHORTCUTS
+───────────────────────────────────────────────────────────────────────────
+
+Alt + S = Save (in modals)
+Alt + C = Cancel (close modals)
+Esc = Close modals
+Enter = Submit search (in POS)
+
+
+9️⃣  FILE LOCATIONS
+───────────────────────────────────────────────────────────────────────────
+
+Key Files to Know:
+   config/constants.php    → All settings (DB, colors, paths)
+   config/database.php     → Database connection
+   config/helpers.php      → Utility functions
+   database/database.sql   → Database schema
+   public/css/main.css     → All styling
+   public/js/main.js       → JavaScript functions
+
+
+🔟  TROUBLESHOOTING
+───────────────────────────────────────────────────────────────────────────
+
+Problem: White screen on login
+   ✓ Check config/constants.php database settings
+   ✓ Ensure database was imported
+   ✓ Check PHP error logs
+
+Problem: Can't add products
+   ✓ Verify you're logged in as Admin
+   ✓ Check that products database is not full
+   ✓ Verify not all products are marked as inactive
+
+Problem: Prices showing as 0
+   ✓ Ensure product price was entered
+   ✓ Price should be numeric (50.50)
+
+Problem: Stock not decreasing
+   ✓ Check after sale is completed
+   ✓ Verify sale was processed successfully
+
+Problem: Logout not working
+   ✓ Clear browser cookies
+   ✓ Try in incognito/private window
+
+
+🎯 COMMON TASKS
+───────────────────────────────────────────────────────────────────────────
+
+Daily Opening:
+   1. Login as admin
+   2. Check dashboard for today's sales target
+   3. Notify cashiers of any inventory updates
+
+Adding New Product:
+   Admin → Products → + Add Product
+   Enter all details, click Add Product
+
+Processing Sale:
+   Cashier → Sales/Checkout
+   Click products or scan barcode
+   Select payment method
+   Complete sale → Print receipt
+
+End of Day:
+   View daily sales total on Dashboard
+   Logout to secure account
+
+
+💡 TIPS & BEST PRACTICES
+───────────────────────────────────────────────────────────────────────────
+
+✓ Use barcodes for faster checkout (scan instead of clicking)
+✓ Check inventory regularly (Products page shows stock)
+✓ Update prices promptly in database when market changes
+✓ Keep user accounts updated (remove inactive staff)
+✓ Backup database weekly
+✓ Change admin password monthly for security
+✓ Use strong passwords (mix letters, numbers, symbols)
+
+
+📞 SUPPORT INFO
+───────────────────────────────────────────────────────────────────────────
+
+If you encounter issues:
+1. Check COMPLETION_STATUS.txt for full system info
+2. Review README.md for detailed documentation
+3. Check config/constants.php for configuration
+4. Look at database/database.sql for schema
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+✅ YOUR POS SYSTEM IS READY TO USE!
+
+Happy selling! 🛒💰
+
+═══════════════════════════════════════════════════════════════════════════
