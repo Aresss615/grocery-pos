@@ -74,7 +74,12 @@ PHP/MySQL grocery POS system for a Philippine store. No framework — vanilla PH
 21. `api/settings.php` (new) — DONE
 22. `navbar.php` update — DONE (Phase 1)
 
-### Phase 6: See PLAN.md
+### Phase 6: Testing & Polish — DONE
+23. Cross-module testing — DONE
+24. Receipt printing test — DONE
+25. Z-Read → day lock test — DONE
+26. Edge cases (no stock, no price, refund limits) — DONE
+27. Mobile responsiveness check — DONE
 
 ## Progress Log
 
@@ -218,6 +223,37 @@ PHP/MySQL grocery POS system for a Philippine store. No framework — vanilla PH
 - POST `action=process_refund`: creates refund record in `refunds` table, marks sale as refunded (partial or full), auto-generates journal entries (Debit Sales Revenue 4010, Debit VAT Payable 2010, Credit Cash account 1010/1011/1012, Credit Sales Returns & Refunds 4030), updates ledger_accounts balances, logs activity as 'critical'. Full transaction with rollback on error.
 - VAT handling: reads business_settings, supports inclusive back-computation and exclusive add-on
 - Auth: `hasAccess('manager_portal')`
+
+### 2026-04-01 — Phase 6: Testing & Polish
+
+**Full codebase audit** — 5-agent parallel review of all pages and APIs. Found and fixed:
+
+**Critical fixes:**
+- `api/held-carts.php` — Added missing `$db = new Database()` (fatal error on all requests)
+- `api/sales.php` — Added CSRF validation via `validateCsrf()` on checkout endpoint
+- `api/sales.php` — Added day-lock check: rejects sales after Z-Read (`day_closed === today`)
+- `api/master-data.php` — Added `requireCsrf(true)` on all POST operations
+- `pages/master-data.php` — Added `csrf_token` to category, supplier, and delete form submissions
+
+**High-priority fixes:**
+- `pages/pos.php` — Receipt: dynamic "VAT Registered" / "Non-VAT" based on `d.vat_registered`
+- `pages/pos.php` — Receipt: dynamic VAT rate label (`VAT ${Math.round(VAT_RATE*100)}%`) instead of hardcoded "12%"
+- `pages/pos.php` — Rounded percent discount amounts in receipt, cart display, and computeTotals to match server
+- `api/inventory.php` — Changed `hasRole('inventory_checker') || hasRole('admin')` → `hasAccess('inventory')`
+- `api/inventory.php` — Added missing `$db = new Database()`
+- `api/get-product.php` — Fixed query: `price_sarisar, price_bulk, bulk_unit` → `price_wholesale`; auth `hasRole('admin')` → `hasAccess('products')`; added `$db` init
+- `api/roles.php` — Added duplicate name validation on role update (was only on create)
+- `pages/inventory.php` — Replaced hardcoded colors (`#1565c0`, `#2e7d32`) with CSS variables (`var(--c-info)`, `var(--c-success)`) for dark theme
+
+**Medium-priority fixes:**
+- `api/refunds.php` — Added optimistic locking on refund UPDATE (`WHERE refund_amount = ?`) to prevent concurrent refunds exceeding sale total
+- `pages/inventory.php` — Added `htmlspecialchars()` to `data-barcodes` attribute (XSS fix)
+- `pages/inventory.php` — CSV export: replaced fragile regex price parsing with `data-retail`/`data-wholesale` row attributes
+
+**Mobile responsiveness:**
+- `pages/pos.php` — Added responsive breakpoints: 1024px (narrower cart), 768px (stacked layout, wrapped navbar), 480px (compact grid/cart)
+- `pages/pos.php` — Added `max-width:95vw` to all inline-sized modals (360px, 420px)
+- `public/css/main.css` — Added 768px/480px breakpoints for `.grid-2` and `.grid-3` utilities (single column on mobile)
 
 ### 2026-04-01 — Dev Environment Setup (Mac)
 

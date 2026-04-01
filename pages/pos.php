@@ -335,6 +335,31 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .toast.err{background:#C62828}
 .toast.warn{background:#E65100}
 
+/* ── Mobile / Tablet responsive ── */
+@media (max-width:1024px){
+    .cart{width:300px}
+    .pg{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+}
+@media (max-width:768px){
+    .pm{flex-direction:column}
+    .pp{border-right:none;border-bottom:2px solid var(--border);max-height:50vh}
+    .cart{width:100%;flex-shrink:1}
+    .pg{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px;padding:6px}
+    .ph-scan{max-width:200px}
+    .ph-right{flex-wrap:wrap;gap:4px}
+    .ph-logo{font-size:.8rem}
+    .held-badge{padding:2px 6px;font-size:.65rem}
+}
+@media (max-width:480px){
+    .pg{grid-template-columns:repeat(auto-fill,minmax(90px,1fr))}
+    .pc{padding:7px 5px 6px}
+    .pc .pc-icon{font-size:1.4rem}
+    .pc .pc-name{font-size:.67rem}
+    .pc .pc-price{font-size:.8rem}
+    .ci{padding:5px 10px;gap:5px}
+    .cart-tots td{padding:2px 14px!important;font-size:.78rem}
+}
+
 @media print{
     .ph,.pp,.pos-sc,.toast,.rec-hdr,.rec-acts{display:none!important}
     .cart,.cart-tots,.cart-body{background:#fff!important;color:#111!important;width:100%!important}
@@ -467,7 +492,7 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 
 <!-- ── ITEM DISCOUNT MODAL ── -->
 <div class="mo" id="moID">
-    <div class="mb" style="width:360px">
+    <div class="mb" style="width:360px;max-width:95vw">
         <div class="mb-hdr"><h3>% Item Discount</h3><button class="mb-cl" onclick="closeMo()">✕</button></div>
         <div class="mb-body">
             <div class="mb-lbl" id="idItemName"></div>
@@ -488,7 +513,7 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 
 <!-- ── TRANSACTION DISCOUNT MODAL ── -->
 <div class="mo" id="moTD">
-    <div class="mb" style="width:360px">
+    <div class="mb" style="width:360px;max-width:95vw">
         <div class="mb-hdr"><h3>% Transaction Discount</h3><button class="mb-cl" onclick="closeMo()">✕</button></div>
         <div class="mb-body">
             <div class="disc-type-btns">
@@ -508,7 +533,7 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 
 <!-- ── HELD CARTS MODAL ── -->
 <div class="mo" id="moHeld">
-    <div class="mb" style="width:420px">
+    <div class="mb" style="width:420px;max-width:95vw">
         <div class="mb-hdr"><h3>🗂️ Held Carts</h3><button class="mb-cl" onclick="closeMo()">✕</button></div>
         <div class="mb-body">
             <div class="held-list" id="heldList">
@@ -698,7 +723,7 @@ function computeTotals() {
     for (const i of cart) {
         const gross = i.price * i.qty;
         let disc = 0;
-        if (i.discount_type === 'percent' && i.discount_value > 0) disc = gross * (i.discount_value / 100);
+        if (i.discount_type === 'percent' && i.discount_value > 0) disc = Math.round(gross * (i.discount_value / 100) * 100) / 100;
         else if (i.discount_type === 'fixed' && i.discount_value > 0) disc = Math.min(i.discount_value, gross);
         itemsSubtotal += gross - disc;
     }
@@ -745,7 +770,7 @@ function renderCart() {
     body.innerHTML = cart.map(i => {
         const gross = i.price * i.qty;
         let disc = 0;
-        if (i.discount_type === 'percent' && i.discount_value > 0) disc = gross * (i.discount_value / 100);
+        if (i.discount_type === 'percent' && i.discount_value > 0) disc = Math.round(gross * (i.discount_value / 100) * 100) / 100;
         else if (i.discount_type === 'fixed'   && i.discount_value > 0) disc = Math.min(i.discount_value, gross);
         const lineTotal = gross - disc;
         const discLabel = i.discount_type !== 'none' && i.discount_value > 0
@@ -1064,7 +1089,7 @@ function showRec(d) {
     const rows = items.map(i => {
         const gross = i.price * i.qty;
         let disc = 0;
-        if (i.discount_type === 'percent' && i.discount_value > 0) disc = gross * (i.discount_value / 100);
+        if (i.discount_type === 'percent' && i.discount_value > 0) disc = Math.round(gross * (i.discount_value / 100) * 100) / 100;
         else if (i.discount_type === 'fixed' && i.discount_value > 0) disc = Math.min(i.discount_value, gross);
         const lineTotal = gross - disc;
         let discRow = '';

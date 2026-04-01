@@ -12,7 +12,7 @@ require_once __DIR__ . '/../config/helpers.php';
 header('Content-Type: application/json');
 
 // Check auth and admin role
-if (!isLoggedIn() || !hasRole('admin')) {
+if (!isLoggedIn() || !hasAccess('products')) {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
@@ -27,8 +27,9 @@ if (!$id) {
 }
 
 try {
+    $db = new Database();
     $product = $db->fetchOne(
-        "SELECT id, name, barcode, price_retail, price_sarisar, price_bulk, quantity, category_id, supplier_id, bulk_unit FROM products WHERE id = ? AND active = 1 LIMIT 1",
+        "SELECT id, name, barcode, price_retail, price_wholesale, quantity, category_id, supplier_id FROM products WHERE id = ? AND active = 1 LIMIT 1",
         [$id]
     );
 

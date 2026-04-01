@@ -114,10 +114,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ── 2. Mark sale as refunded ──────────────────────────
         $new_total = round($already_refunded + $refund_amount, 2);
         $is_full   = ($new_total >= floatval($sale['total_amount'])) ? 1 : 0;
-        $db->execute(
-            "UPDATE sales SET refunded = ?, refund_amount = refund_amount + ? WHERE id = ?",
-            [$is_full, $refund_amount, $sale_id]
+        $updated = $db->execute(
+            "UPDATE sales SET refunded = ?, refund_amount = refund_amount + ? WHERE id = ? AND refund_amount = ?",
+            [$is_full, $refund_amount, $sale_id, $already_refunded]
         );
+        if (!$updated) {
+            throw new Exception('Refund conflict — another refund was processed simultaneously. Please try again.');
+        }
 
         // ── 3. Auto journal entries (if table exists) ─────────
         $je_exists = $db->fetchOne("SHOW TABLES LIKE 'journal_entries'");

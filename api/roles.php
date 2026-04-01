@@ -146,6 +146,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['error' => 'Role not found']); exit;
         }
 
+        // Check for duplicate name (exclude current role)
+        $dup = $db->fetchOne("SELECT id FROM roles WHERE name = ? AND id != ?", [$name, $role_id]);
+        if ($dup) {
+            echo json_encode(['error' => 'A role with that name already exists']); exit;
+        }
+
         $db->beginTransaction();
         try {
             // Update name (slug stays the same for system roles)

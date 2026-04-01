@@ -178,10 +178,12 @@ $csrf = getCsrfToken();
                     $reorder_qty = ($qty !== null && $qty < $min) ? max(0, ($min * 2) - $qty) : 0;
                 ?>
                     <tr data-name="<?php echo strtolower(htmlspecialchars($p['name'])); ?>"
-                        data-barcodes="<?php echo implode(' ', $all_barcodes); ?>"
+                        data-barcodes="<?php echo htmlspecialchars(implode(' ', $all_barcodes), ENT_QUOTES, 'UTF-8'); ?>"
                         data-category="<?php echo $p['category_id']; ?>"
                         data-supplier="<?php echo $p['supplier_id']; ?>"
-                        data-status="<?php echo $status; ?>">
+                        data-status="<?php echo $status; ?>"
+                        data-retail="<?php echo number_format($p['price_retail'] ?? 0, 2, '.', ''); ?>"
+                        data-wholesale="<?php echo number_format($p['price_wholesale'] ?? 0, 2, '.', ''); ?>">
                         <td><strong><?php echo htmlspecialchars($p['name']); ?></strong></td>
                         <td>
                             <code><?php echo htmlspecialchars($p['barcode']); ?></code>
@@ -203,13 +205,13 @@ $csrf = getCsrfToken();
                             <?php
                             $price_parts = [];
                             if ($p['price_retail'] > 0)    $price_parts[] = '<span style="color:var(--c-text)">₱' . number_format($p['price_retail'],2) . '</span>';
-                            if ($p['price_wholesale'] > 0) $price_parts[] = '<span style="color:#1565c0">₱' . number_format($p['price_wholesale'],2) . ' W</span>';
+                            if ($p['price_wholesale'] > 0) $price_parts[] = '<span style="color:var(--c-info,#1565c0)">₱' . number_format($p['price_wholesale'],2) . ' W</span>';
                             echo $price_parts ? implode(' / ', $price_parts) : '<span class="text-muted">—</span>';
                             ?>
                             <?php if ($tiers): ?>
                                 <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">
                                 <?php foreach ($tiers as $t):
-                                    $tc = ['retail'=>'#2e7d32','wholesale'=>'#1565c0','both'=>'var(--c-text-soft)'][$t['price_mode'] ?? 'both'] ?? 'var(--c-text-soft)';
+                                    $tc = ['retail'=>'var(--c-success,#2e7d32)','wholesale'=>'var(--c-info,#1565c0)','both'=>'var(--c-text-soft)'][$t['price_mode'] ?? 'both'] ?? 'var(--c-text-soft)';
                                 ?>
                                     <span style="font-size:.7rem;padding:1px 6px;border-radius:999px;background:var(--c-bg,#f5f5f5);color:<?php echo $tc; ?>;white-space:nowrap;">
                                         <?php echo htmlspecialchars($t['tier_name']); ?> ₱<?php echo number_format($t['price'],2); ?>
@@ -324,12 +326,8 @@ $csrf = getCsrfToken();
                 const supplier = '"' + cells[3].textContent.trim() + '"';
                 const stock    = cells[4].textContent.trim().replace(/\s+/g,' ').replace(/Order ~\d+/,'').trim();
                 const min      = cells[5].textContent.trim();
-                // Parse retail and wholesale from the pricing cell
-                const priceText = cells[6].textContent.trim();
-                const retailMatch     = priceText.match(/₱([\d,]+\.\d{2})(?!\s*W)/);
-                const wholesaleMatch  = priceText.match(/₱([\d,]+\.\d{2})\s*W/);
-                const retail     = retailMatch    ? retailMatch[1]    : '';
-                const wholesale  = wholesaleMatch ? wholesaleMatch[1] : '';
+                const retail     = row.dataset.retail && row.dataset.retail !== '0.00' ? row.dataset.retail : '';
+                const wholesale  = row.dataset.wholesale && row.dataset.wholesale !== '0.00' ? row.dataset.wholesale : '';
                 const lastSold   = '"' + cells[7].textContent.trim() + '"';
                 csv += [name, barcode, category, supplier, stock, min, retail, wholesale, lastSold].join(',') + '\n';
             });

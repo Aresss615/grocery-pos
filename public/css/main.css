@@ -1093,9 +1093,15 @@ textarea { resize: vertical; min-height: 90px; }
 
 @media (max-width: 480px) {
     .stats-grid { grid-template-columns: 1fr; }
+    .grid-3, .grid-2 { grid-template-columns: 1fr; }
     .modal-content { max-width: 100%; border-radius: var(--radius-lg); }
     .login-card { padding: 24px 16px; }
     .btn-lg { padding: 12px 20px; font-size: .9rem; }
+}
+
+@media (max-width: 768px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
 }
 
 /* ============================================================

@@ -12,12 +12,13 @@ require_once __DIR__ . '/../config/helpers.php';
 header('Content-Type: application/json');
 
 // Check auth
-if (!isLoggedIn() || (!hasRole('inventory_checker') && !hasRole('admin'))) {
+if (!isLoggedIn() || !hasAccess('inventory')) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
 }
 
+$db = new Database();
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 if ($action === 'update_stock') {
