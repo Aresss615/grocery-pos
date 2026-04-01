@@ -52,7 +52,13 @@ PHP/MySQL grocery POS system for a Philippine store. No framework — vanilla PH
 5. `pages/products.php` rework — DONE
 6. `pages/inventory.php` sync — DONE
 
-### Phase 3–6: See PLAN.md
+### Phase 3: POS Terminal — DONE
+7. `pages/pos.php` full rewrite — DONE
+8. `api/sales.php` v4 — DONE
+9. `api/search-product.php` update — DONE
+10. `api/held-carts.php` (new) — DONE
+
+### Phase 4–6: See PLAN.md
 
 ## Progress Log
 
@@ -69,6 +75,53 @@ PHP/MySQL grocery POS system for a Philippine store. No framework — vanilla PH
 **navbar.php** — Switched all `hasRole()` checks to `hasAccess()` calls, which now delegate to the permission system. Each nav item checks its corresponding permission. Custom roles with the right permissions now see the correct menu items.
 
 **auth/login.php** — Updated user SELECT to include `role_id`. Passes `$db` to `setUserSession()` so permissions are loaded from `role_permissions` table on login.
+
+### 2026-04-01 — Phase 3: POS Terminal
+
+**api/sales.php** — Full v4 rewrite:
+- Auth: `hasRole()` → `hasAccess('pos')`
+- Price mode: 'retail'/'wholesale' (dropped 'pack'); resolves `price_wholesale` from DB, falls back to `price_retail`
+- Per-item discounts: `discount_type` (percent/fixed/none) + `discount_value` per cart item; server validates and applies
+- Transaction discount: `discount_type` + `discount_value` at sale level, applied after item subtotals summed
+- VAT: reads `business_settings` via `getBusinessSettings()`; supports inclusive back-computation and exclusive add-on; Non-VAT businesses skip VAT
+- Receipt number: calls `generateReceiptNumber($db)` inside transaction (atomic SELECT FOR UPDATE)
+- Sale INSERT: includes `receipt_number`, `customer_name`, `price_mode`, `discount_amount`, `discount_type`, `discount_value`
+- sale_items INSERT: includes `discount_amount`, `discount_type`, `discount_value`, `price_tier`
+- Journal auto-generation: Debit cash account (1010/1011/1012), Credit Sales Revenue (4010), Credit VAT Payable (2010), Debit Sales Discounts (4020 if discount > 0); checks SHOW TABLES first (graceful skip if table missing)
+- Ledger balance update: `UPDATE ledger_accounts SET balance = balance + ?` for affected accounts
+- logActivity: includes severity='info', details include receipt number
+- Response: returns `receipt_number`, `vat_inclusive`, `vat_registered`, `customer_name`, `discount`
+
+**pages/pos.php** — Full v4 rewrite:
+- Auth: `hasAccess('pos')` (permission-based)
+- Day-lock check: reads `business_settings.day_closed`; if today, shows full-screen blocking overlay
+- SQL: `price_wholesale` instead of `price_sarisar`/`price_bulk`; tier fetch includes `price_mode`
+- Tier building: fallback creates 'retail' + 'wholesale' tiers from base prices if no explicit tiers
+- VAT settings passed to JS as `VAT_RATE`, `VAT_INCLUSIVE`, `VAT_REGISTERED` constants from PHP
+- Business info (`BIZ_NAME`, `BIZ_ADDRESS`, `BIZ_TIN`) passed to JS for receipt printing
+- **Retail/Wholesale toggle** in header (replaces Retail/Pack/Bulk); `setPriceMode()` recalculates all cart prices on switch; wholesale mode turns header blue
+- `getPrice(p, mode)`: resolves by `price_mode` attribute on tiers; falls back to `price_retail`/`price_wholesale`
+- **Customer name** input above totals (optional, passed to checkout API)
+- **Per-item discount** button (%) on each cart row → Item Discount modal (percent/fixed/remove)
+- **Transaction discount** button below totals → Transaction Discount modal (percent/fixed/remove); shown as colored row with amount
+- `computeTotals()`: JS function that recomputes subtotal, txnDiscAmt, vat, total client-side (matches server logic)
+- **Held carts**: hold button `Ctrl+H`, resume modal `Ctrl+R`; header badge "Held N/3"; `loadHeldCarts()` fetches from API on load and after changes
+- Receipt modal: shows `receipt_number` (JJ-XXXXXX), customer name, price mode, per-item discounts, VAT-inclusive breakdown (VATable Sales + VAT or Non-VAT notice), business name/address/TIN
+- `doPay()`: payload includes `price_mode`, `discount_type`, `discount_value`, `customer_name`, per-item `discount_type`/`discount_value`
+- Keyboard shortcuts updated: `Ctrl+1/2/3` (pay), `Ctrl+H` (hold), `Ctrl+R` (resume), `Ctrl+M` (toggle mode), `Ctrl+B` (focus scanner), `Ctrl+Shift+C` (clear cart)
+
+**api/search-product.php** — Updated:
+- Auth: `hasAccess('pos')` 
+- SQL: `price_wholesale` instead of `price_sarisar`/`price_bulk`
+- Tier fetch: adds `price_mode` column
+- Fallback tier building: creates 'retail'/'wholesale' tiers (not 'Pack'/'Bulk')
+
+**api/held-carts.php** — New file:
+- GET: lists held carts for current cashier (decoded `cart_data` JSON)
+- POST action=hold: saves cart + txn_discount + customer_name as JSON blob; enforces max 3 per cashier
+- POST action=resume: fetches row, deletes it, returns `cart`, `txn_discount`, `price_mode`, `customer_name`
+- POST action=delete: deletes by id + cashier_id (ownership check)
+- CSRF validation on all POST actions
 
 ### 2026-04-01 — Phase 2: Products + Inventory
 

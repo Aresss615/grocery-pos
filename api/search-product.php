@@ -1,7 +1,7 @@
 <?php
 /**
- * API Endpoint - Search Products by barcode or name
- * Used by POS as server-side fallback when client-side lookup misses.
+ * API — Search Products by barcode or name
+ * Server-side fallback for POS when client-side lookup misses.
  * Returns products in the same shape as the PRODS array in pos.php.
  */
 
@@ -12,97 +12,76 @@ require_once __DIR__ . '/../config/helpers.php';
 
 header('Content-Type: application/json');
 
-if (!isLoggedIn() || (!hasRole('cashier') && !hasRole('admin') && !hasRole('manager'))) {
+if (!isLoggedIn() || !hasAccess('pos')) {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
 }
 
 $q = trim($_GET['q'] ?? '');
-if ($q === '') {
-    echo json_encode([]);
-    exit();
-}
+if ($q === '') { echo json_encode([]); exit(); }
 
 try {
-    // 1) Exact barcode match on main products table
+    $cols = "p.id, p.name, p.barcode, p.price_retail, p.price_wholesale,
+             p.quantity, p.min_quantity, p.category_id, c.name AS category_name";
+
+    // 1) Exact barcode match on products table
     $products = $db->fetchAll(
-        "SELECT p.id, p.name, p.barcode, p.price_retail, p.price_sarisar, p.price_bulk,
-                p.bulk_unit, p.quantity, p.min_quantity, p.category_id, c.name AS category_name
-         FROM products p
-         LEFT JOIN categories c ON p.category_id = c.id
-         WHERE p.active = 1 AND p.barcode = ?
-         LIMIT 5",
+        "SELECT {$cols} FROM products p LEFT JOIN categories c ON p.category_id = c.id
+         WHERE p.active = 1 AND p.barcode = ? LIMIT 5",
         [$q]
     );
 
-    // 2) Exact barcode match on product_barcodes (migration_v3)
+    // 2) Exact barcode match on product_barcodes
     if (empty($products)) {
         try {
-            $row = $db->fetchOne(
-                "SELECT product_id FROM product_barcodes WHERE barcode = ? LIMIT 1",
-                [$q]
-            );
+            $row = $db->fetchOne("SELECT product_id FROM product_barcodes WHERE barcode = ? LIMIT 1", [$q]);
             if ($row) {
                 $products = $db->fetchAll(
-                    "SELECT p.id, p.name, p.barcode, p.price_retail, p.price_sarisar, p.price_bulk,
-                            p.bulk_unit, p.quantity, p.min_quantity, p.category_id, c.name AS category_name
-                     FROM products p
-                     LEFT JOIN categories c ON p.category_id = c.id
-                     WHERE p.active = 1 AND p.id = ?
-                     LIMIT 1",
+                    "SELECT {$cols} FROM products p LEFT JOIN categories c ON p.category_id = c.id
+                     WHERE p.active = 1 AND p.id = ? LIMIT 1",
                     [$row['product_id']]
                 );
             }
-        } catch (Exception $e) { /* product_barcodes may not exist yet */ }
+        } catch (Exception $e) {}
     }
 
-    // 3) Name LIKE search (only if no barcode match)
+    // 3) Name LIKE search
     if (empty($products)) {
         $products = $db->fetchAll(
-            "SELECT p.id, p.name, p.barcode, p.price_retail, p.price_sarisar, p.price_bulk,
-                    p.bulk_unit, p.quantity, p.min_quantity, p.category_id, c.name AS category_name
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.active = 1 AND p.name LIKE ?
-             ORDER BY p.name
-             LIMIT 10",
+            "SELECT {$cols} FROM products p LEFT JOIN categories c ON p.category_id = c.id
+             WHERE p.active = 1 AND p.name LIKE ? ORDER BY p.name LIMIT 10",
             ['%' . $q . '%']
         );
     }
 
-    if (empty($products)) {
-        echo json_encode([]);
-        exit();
-    }
+    if (empty($products)) { echo json_encode([]); exit(); }
 
-    // Attach extra_barcodes and tiers — same logic as pos.php
-    $ids = array_column($products, 'id');
+    // Attach extra_barcodes and tiers
+    $ids          = array_column($products, 'id');
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     $extra_barcodes = [];
     try {
         $eb = $db->fetchAll(
-            "SELECT product_id, barcode, unit_label FROM product_barcodes WHERE product_id IN ($placeholders)",
+            "SELECT product_id, barcode, unit_label FROM product_barcodes WHERE product_id IN ({$placeholders})",
             $ids
         );
         foreach ($eb as $row) {
             $extra_barcodes[$row['product_id']][] = ['barcode' => $row['barcode'], 'unit' => $row['unit_label']];
         }
-    } catch (Exception $e) { /* table may not exist yet */ }
+    } catch (Exception $e) {}
 
     $extra_tiers = [];
     try {
         $et = $db->fetchAll(
-            "SELECT product_id, tier_name, price, unit_label, sort_order
-             FROM product_price_tiers WHERE product_id IN ($placeholders)
+            "SELECT product_id, tier_name, price, unit_label, qty_multiplier, sort_order, price_mode
+             FROM product_price_tiers WHERE product_id IN ({$placeholders})
              ORDER BY product_id, sort_order",
             $ids
         );
-        foreach ($et as $row) {
-            $extra_tiers[$row['product_id']][] = $row;
-        }
-    } catch (Exception $e) { /* table may not exist yet */ }
+        foreach ($et as $row) $extra_tiers[$row['product_id']][] = $row;
+    } catch (Exception $e) {}
 
     foreach ($products as &$p) {
         $pid = $p['id'];
@@ -111,18 +90,15 @@ try {
             $p['tiers'] = $extra_tiers[$pid];
         } else {
             $p['tiers'] = [];
-            if ($p['price_retail'] > 0) $p['tiers'][] = ['tier_name' => 'Retail', 'price' => (float)$p['price_retail'], 'unit_label' => 'pcs'];
-            if (!empty($p['price_sarisar'])) $p['tiers'][] = ['tier_name' => 'Pack', 'price' => (float)$p['price_sarisar'], 'unit_label' => 'pack'];
-            if (!empty($p['price_bulk']))    $p['tiers'][] = ['tier_name' => ($p['bulk_unit'] ?: 'Bulk'), 'price' => (float)$p['price_bulk'], 'unit_label' => strtolower($p['bulk_unit'] ?: 'bulk')];
+            if ($p['price_retail']    > 0) $p['tiers'][] = ['tier_name' => 'Retail',    'price' => (float)$p['price_retail'],    'unit_label' => 'pcs', 'price_mode' => 'retail'];
+            if ($p['price_wholesale'] > 0) $p['tiers'][] = ['tier_name' => 'Wholesale', 'price' => (float)$p['price_wholesale'], 'unit_label' => 'pcs', 'price_mode' => 'wholesale'];
         }
-        // Cast numeric fields
-        $p['price_retail']  = (float)$p['price_retail'];
-        $p['price_sarisar'] = (float)$p['price_sarisar'];
-        $p['price_bulk']    = (float)$p['price_bulk'];
-        $p['quantity']      = $p['quantity'] !== null ? (int)$p['quantity'] : null;
-        $p['min_quantity']  = (int)($p['min_quantity'] ?? 5);
-        $p['id']            = (int)$p['id'];
-        $p['category_id']   = (int)$p['category_id'];
+        $p['price_retail']    = (float)$p['price_retail'];
+        $p['price_wholesale'] = (float)($p['price_wholesale'] ?? 0);
+        $p['quantity']        = $p['quantity'] !== null ? (int)$p['quantity'] : null;
+        $p['min_quantity']    = (int)($p['min_quantity'] ?? 5);
+        $p['id']              = (int)$p['id'];
+        $p['category_id']     = (int)$p['category_id'];
     }
     unset($p);
 
