@@ -254,6 +254,30 @@ class Database {
     }
 
     /**
+     * Begin a database transaction.
+     */
+    public function beginTransaction() {
+        $this->connection->autocommit(false);
+        $this->connection->begin_transaction();
+    }
+
+    /**
+     * Commit the current transaction.
+     */
+    public function commit() {
+        $this->connection->commit();
+        $this->connection->autocommit(true);
+    }
+
+    /**
+     * Roll back the current transaction.
+     */
+    public function rollback() {
+        $this->connection->rollback();
+        $this->connection->autocommit(true);
+    }
+
+    /**
      * Close connection
      */
     public function close() {

@@ -34,8 +34,12 @@ define('DATETIME_FORMAT_DISPLAY', 'd/m/Y g:i A');
 
 // ========================================
 // Business Rules (PHILIPPINES)
+// Authoritative VAT config lives in `business_settings` table.
+// These constants are compile-time fallbacks used before the DB
+// is available (e.g. during the login page render).
 // ========================================
-define('VAT_RATE', 0.12); // 12% VAT for Philippines
+define('VAT_RATE', 0.12); // 12% VAT fallback
+define('VAT_INCLUSIVE', true); // fallback — prices include VAT
 define('DISCOUNT_PERCENTAGE', 0); // Default discount
 define('SESSION_TIMEOUT', 480); // 8 hours in minutes
 
@@ -49,12 +53,26 @@ define('PAYMENT_METHODS', [
 ]);
 
 // ========================================
-// User Roles
+// User Roles (slug values — match roles.slug in DB)
 // ========================================
 define('ROLE_ADMIN', 'admin');
 define('ROLE_CASHIER', 'cashier');
 define('ROLE_MANAGER', 'manager');
 define('ROLE_INVENTORY', 'inventory_checker');
+
+// ========================================
+// Permission Keys (match role_permissions.permission in DB)
+// ========================================
+define('PERM_DASHBOARD',      'dashboard');
+define('PERM_POS',            'pos');
+define('PERM_PRODUCTS',       'products');
+define('PERM_INVENTORY',      'inventory');
+define('PERM_MASTER_DATA',    'master_data');
+define('PERM_USERS',          'users');
+define('PERM_MANAGER_PORTAL', 'manager_portal');
+define('PERM_REPORTS',        'reports');
+define('PERM_SETTINGS',       'settings');
+define('PERM_AUDIT_TRAIL',    'audit_trail');
 
 // ========================================
 // File Paths (Relative to web root)

@@ -26,9 +26,9 @@ if (empty($username) || empty($password)) {
     redirectWithMessage(BASE_URL . '/index.php', 'Username and password required', 'error');
 }
 
-// Find user in database
+// Find user in database (include role_id for v4+ permission system)
 $user = $db->fetchOne(
-    "SELECT id, name, username, password, role FROM users WHERE username = ? AND active = 1",
+    "SELECT id, name, username, password, role, role_id FROM users WHERE username = ? AND active = 1",
     [$username]
 );
 
@@ -41,8 +41,8 @@ if (!password_verify($password, $user['password'])) {
     redirectWithMessage(BASE_URL . '/index.php', 'Invalid username or password', 'error');
 }
 
-// Set session
-setUserSession($user);
+// Set session (pass $db so permissions are loaded from role_permissions table)
+setUserSession($user, $db);
 
 // Redirect based on role
 $dashboard = BASE_URL . '/pages/dashboard.php';

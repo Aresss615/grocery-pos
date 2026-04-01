@@ -38,43 +38,49 @@ $user = getCurrentUser();
                 <span class="nav-icon">📊</span> Dashboard
             </a>
 
-            <?php if (hasRole('cashier') || hasRole('admin')): ?>
+            <?php if (hasAccess('pos')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/pos.php"
                class="nav-link <?php echo in_array($current_page, ['pos.php','sales.php']) ? 'active' : ''; ?>">
                 <span class="nav-icon">🖥️</span> POS
             </a>
             <?php endif; ?>
 
-            <?php if (hasRole('admin') || hasRole('manager')): ?>
+            <?php if (hasAccess('products')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/products.php"
                class="nav-link <?php echo $current_page === 'products.php' ? 'active' : ''; ?>">
                 <span class="nav-icon">📦</span> Products
             </a>
             <?php endif; ?>
 
-            <?php if (hasRole('admin') || hasRole('inventory_checker') || hasRole('manager')): ?>
+            <?php if (hasAccess('inventory')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/inventory.php"
                class="nav-link <?php echo $current_page === 'inventory.php' ? 'active' : ''; ?>">
                 <span class="nav-icon">🗂️</span> Inventory
             </a>
             <?php endif; ?>
 
-            <?php if (hasRole('admin')): ?>
+            <?php if (hasAccess('master-data')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/master-data.php"
                class="nav-link <?php echo $current_page === 'master-data.php' ? 'active' : ''; ?>">
                 <span class="nav-icon">🏷️</span> Master Data
             </a>
+            <?php endif; ?>
+
+            <?php if (hasAccess('users')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/users.php"
                class="nav-link <?php echo $current_page === 'users.php' ? 'active' : ''; ?>">
                 <span class="nav-icon">👥</span> Users
             </a>
             <?php endif; ?>
 
-            <?php if (hasRole('manager') || hasRole('admin')): ?>
+            <?php if (hasAccess('manager')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/manager.php"
                class="nav-link <?php echo $current_page === 'manager.php' ? 'active' : ''; ?>">
                 <span class="nav-icon">💼</span> Manager
             </a>
+            <?php endif; ?>
+
+            <?php if (hasAccess('reports')): ?>
             <a href="<?php echo BASE_URL; ?>/pages/reports.php"
                class="nav-link <?php echo in_array($current_page, ['reports.php','sales-report.php']) ? 'active' : ''; ?>">
                 <span class="nav-icon">📈</span> Reports
