@@ -22,6 +22,7 @@ $page_title = 'Login';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo APP_NAME; ?> - <?php echo $page_title; ?></title>
     <link rel="stylesheet" href="<?php echo CSS_URL; ?>/main.css">
+    <link rel="stylesheet" href="<?php echo CSS_URL; ?>/theme.css">
 </head>
 <body class="login-page">
     <div class="login-bg-decoration"></div>

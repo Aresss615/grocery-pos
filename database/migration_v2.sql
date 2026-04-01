@@ -26,13 +26,13 @@ CREATE TABLE IF NOT EXISTS activity_log (
 -- Adds optional discount column to the sales table.
 -- Existing rows default to 0 so nothing breaks.
 ALTER TABLE sales
-    ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0
+    ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0
     AFTER tax_amount;
 
 -- ── 3. sale_items.discount_amount ────────────────────────────────────────────
 -- Per-line discount support.
 ALTER TABLE sale_items
-    ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0
+    ADD COLUMN discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0
     AFTER unit_price;
 
 -- ── 4. login_attempts table ───────────────────────────────────────────────────

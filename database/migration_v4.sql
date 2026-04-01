@@ -3,7 +3,7 @@
 -- System Overhaul: business settings, roles & permissions,
 --   receipt counter, journal/ledger, refunds, held carts,
 --   remittances, and column additions to existing tables.
--- Safe to run multiple times (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS).
+-- Safe to run multiple times (IF NOT EXISTS / ADD COLUMN).
 -- ============================================================
 
 -- ── 1. Business Settings (single-row store config) ───────────
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS remittances (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── 10. ALTER users — add role_id FK ─────────────────────────
-ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id INT NULL AFTER role;
+ALTER TABLE users ADD COLUMN role_id INT NULL AFTER role;
 
 -- Migrate existing ENUM role values → role_id
 UPDATE users u
@@ -247,13 +247,13 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- ── 11. ALTER sales — add receipt_number, customer, discount, refund fields ─
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS receipt_number  VARCHAR(30) NULL AFTER id;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS customer_name   VARCHAR(100) NULL AFTER notes;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount_type   ENUM('none','percent','fixed') NOT NULL DEFAULT 'none' AFTER discount_amount;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount_value  DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER discount_type;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS refunded        TINYINT(1) NOT NULL DEFAULT 0 AFTER voided;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS refund_amount   DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER refunded;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS price_mode      ENUM('retail','wholesale') NOT NULL DEFAULT 'retail' AFTER notes;
+ALTER TABLE sales ADD COLUMN receipt_number  VARCHAR(30) NULL AFTER id;
+ALTER TABLE sales ADD COLUMN customer_name   VARCHAR(100) NULL AFTER notes;
+ALTER TABLE sales ADD COLUMN discount_type   ENUM('none','percent','fixed') NOT NULL DEFAULT 'none' AFTER discount_amount;
+ALTER TABLE sales ADD COLUMN discount_value  DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER discount_type;
+ALTER TABLE sales ADD COLUMN refunded        TINYINT(1) NOT NULL DEFAULT 0 AFTER voided;
+ALTER TABLE sales ADD COLUMN refund_amount   DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER refunded;
+ALTER TABLE sales ADD COLUMN price_mode      ENUM('retail','wholesale') NOT NULL DEFAULT 'retail' AFTER notes;
 
 -- Unique index on receipt_number (idempotent via IF NOT EXISTS workaround)
 SET @idx_exists = (
@@ -271,9 +271,9 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- ── 12. ALTER sale_items — add per-item discount fields ──────
-ALTER TABLE sale_items ADD COLUMN IF NOT EXISTS discount_type  ENUM('none','percent','fixed') NOT NULL DEFAULT 'none' AFTER discount_amount;
-ALTER TABLE sale_items ADD COLUMN IF NOT EXISTS discount_value DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER discount_type;
-ALTER TABLE sale_items ADD COLUMN IF NOT EXISTS price_tier     VARCHAR(50) NULL AFTER discount_value;
+ALTER TABLE sale_items ADD COLUMN discount_type  ENUM('none','percent','fixed') NOT NULL DEFAULT 'none' AFTER discount_amount;
+ALTER TABLE sale_items ADD COLUMN discount_value DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER discount_type;
+ALTER TABLE sale_items ADD COLUMN price_tier     VARCHAR(50) NULL AFTER discount_value;
 
 -- ── 13. ALTER products — rename price_sarisar → price_wholesale ─
 -- Check if old column exists before renaming
@@ -292,12 +292,12 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- ── 14. ALTER product_price_tiers — add price_mode column ────
-ALTER TABLE product_price_tiers ADD COLUMN IF NOT EXISTS price_mode ENUM('retail','wholesale','both') NOT NULL DEFAULT 'both' AFTER sort_order;
+ALTER TABLE product_price_tiers ADD COLUMN price_mode ENUM('retail','wholesale','both') NOT NULL DEFAULT 'both' AFTER sort_order;
 
 -- ── 15. ALTER activity_log — add severity, old_value, new_value ─
-ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS severity  ENUM('info','warning','critical') NOT NULL DEFAULT 'info' AFTER action;
-ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS old_value TEXT NULL;
-ALTER TABLE activity_log ADD COLUMN IF NOT EXISTS new_value TEXT NULL;
+ALTER TABLE activity_log ADD COLUMN severity  ENUM('info','warning','critical') NOT NULL DEFAULT 'info' AFTER action;
+ALTER TABLE activity_log ADD COLUMN old_value TEXT NULL;
+ALTER TABLE activity_log ADD COLUMN new_value TEXT NULL;
 
 -- ── Done ─────────────────────────────────────────────────────
 -- SELECT 'Migration v4 applied successfully' AS status;

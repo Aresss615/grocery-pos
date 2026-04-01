@@ -77,7 +77,7 @@ define('PERM_AUDIT_TRAIL',    'audit_trail');
 // ========================================
 // File Paths (Relative to web root)
 // ========================================
-define('BASE_URL', '/grocery-pos');
+define('BASE_URL', '');
 define('CONFIG_PATH', __DIR__);
 define('ROOT_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', ROOT_PATH . '/public');

@@ -9,7 +9,7 @@ require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/helpers.php';
 
-if (!isLoggedIn() || !hasRole('admin')) {
+if (!isLoggedIn() || !hasAccess('products')) {
     redirect(BASE_URL . '/pages/dashboard.php');
 }
 
@@ -32,26 +32,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prices      = $_POST['tier_price']       ?? [];
         $units       = $_POST['tier_unit_label']  ?? [];
         $multipliers = $_POST['tier_qty_mult']    ?? [];
+        $modes       = $_POST['tier_mode']        ?? [];
 
         $db->execute("DELETE FROM product_price_tiers WHERE product_id = ?", [$product_id]);
 
-        $retail_synced = false;
+        $retail_synced    = false;
+        $wholesale_synced = false;
         foreach ($names as $i => $raw_name) {
-            $name = trim($raw_name);
+            $name  = trim($raw_name);
             $price = floatval($prices[$i] ?? 0);
             $unit  = trim($units[$i] ?? 'pcs') ?: 'pcs';
             $mult  = floatval($multipliers[$i] ?? 1) ?: 1;
+            $mode  = in_array($modes[$i] ?? '', ['retail','wholesale','both']) ? $modes[$i] : 'both';
             if ($name === '' || $price <= 0) continue;
 
             $db->execute(
-                "INSERT INTO product_price_tiers (product_id, tier_name, price, unit_label, qty_multiplier, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
-                [$product_id, $name, $price, $unit, $mult, $i + 1]
+                "INSERT INTO product_price_tiers (product_id, tier_name, price, unit_label, qty_multiplier, sort_order, price_mode) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [$product_id, $name, $price, $unit, $mult, $i + 1, $mode]
             );
 
-            // Sync first valid tier → products.price_retail for backwards-compat
-            if (!$retail_synced) {
+            // Sync first retail/both tier → products.price_retail
+            if (!$retail_synced && in_array($mode, ['retail','both'])) {
                 $db->execute("UPDATE products SET price_retail = ? WHERE id = ?", [$price, $product_id]);
                 $retail_synced = true;
+            }
+            // Sync first wholesale/both tier → products.price_wholesale
+            if (!$wholesale_synced && in_array($mode, ['wholesale','both'])) {
+                $db->execute("UPDATE products SET price_wholesale = ? WHERE id = ?", [$price, $product_id]);
+                $wholesale_synced = true;
             }
         }
     };
@@ -99,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['message_type'] = 'error';
         } else {
             $db->execute(
-                "INSERT INTO products (name, barcode, price_retail, price_sarisar, price_bulk, quantity, min_quantity, category_id, supplier_id) VALUES (?, ?, 0, 0, 0, ?, ?, ?, ?)",
+                "INSERT INTO products (name, barcode, price_retail, price_wholesale, quantity, min_quantity, category_id, supplier_id) VALUES (?, ?, 0, 0, ?, ?, ?, ?)",
                 [$name, $barcode, $quantity, $min_quantity, $category_id, $supplier_id]
             );
             $product_id = $db->lastInsertId();
@@ -156,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Data fetch ────────────────────────────────────────────────────────────────
 $products = $db->fetchAll(
     "SELECT p.id, p.name, p.barcode, p.quantity, p.min_quantity,
-            p.price_retail, p.price_sarisar, p.price_bulk,
+            p.price_retail, p.price_wholesale,
             p.category_id, p.supplier_id,
             c.name AS category_name, s.name AS supplier_name
      FROM products p
@@ -223,6 +231,10 @@ $csrf = getCsrfToken();
             color:var(--c-text,var(--color-dark));
             white-space:nowrap;
         }
+        .tier-pill--retail    { background:#e8f5e9; color:#2e7d32; }
+        .tier-pill--wholesale { background:#e3f2fd; color:#1565c0; }
+        .tier-pill--both      { background:var(--c-accent,var(--color-accent)); color:var(--c-text,var(--color-dark)); }
+        .tier-mode-tag { font-style:normal; font-weight:700; margin-right:3px; font-size:.7rem; opacity:.8; }
 
         /* Barcode badges */
         .bc-primary { font-family:monospace; font-size:.8rem; background:var(--c-accent,var(--color-accent)); padding:2px 7px; border-radius:4px; }
@@ -337,6 +349,14 @@ $csrf = getCsrfToken();
                     <option value="out">Out</option>
                 </select>
             </div>
+            <div class="fi">
+                <label for="srchMode">Price Mode</label>
+                <select id="srchMode" onchange="applyFilters()">
+                    <option value="">All Modes</option>
+                    <option value="retail">Retail</option>
+                    <option value="wholesale">Wholesale</option>
+                </select>
+            </div>
         </div>
 
         <!-- Products table -->
@@ -371,11 +391,15 @@ $csrf = getCsrfToken();
                         $all_bcs = implode(' ', $barcodes);
                         $tier_text = implode(' ', array_column($tiers, 'tier_name'));
                         $search_text = strtolower($p['name'] . ' ' . $all_bcs . ' ' . $tier_text);
+                        // price modes present in this product's tiers
+                        $tier_modes = array_unique(array_column($tiers, 'price_mode'));
+                        $mode_str = implode(',', $tier_modes);
                     ?>
                     <tr class="table-row"
                         data-search="<?php echo htmlspecialchars($search_text); ?>"
                         data-cat="<?php echo $p['category_id'] ?? ''; ?>"
-                        data-stock="<?php echo $stock_flag; ?>">
+                        data-stock="<?php echo $stock_flag; ?>"
+                        data-mode="<?php echo htmlspecialchars($mode_str); ?>">
                         <td><strong><?php echo htmlspecialchars($p['name']); ?></strong></td>
                         <td>
                             <span class="bc-primary"><?php echo htmlspecialchars($p['barcode']); ?></span>
@@ -386,8 +410,13 @@ $csrf = getCsrfToken();
                         <td>
                             <?php if ($tiers): ?>
                                 <div class="tier-pills">
-                                    <?php foreach ($tiers as $t): ?>
-                                        <span class="tier-pill"><?php echo htmlspecialchars($t['tier_name']); ?> <?php echo formatCurrency($t['price']); ?></span>
+                                    <?php foreach ($tiers as $t):
+                                        $mode_label = ['retail'=>'R','wholesale'=>'W','both'=>''][$t['price_mode'] ?? 'both'] ?? '';
+                                    ?>
+                                        <span class="tier-pill tier-pill--<?php echo $t['price_mode'] ?? 'both'; ?>">
+                                            <?php if ($mode_label): ?><em class="tier-mode-tag"><?php echo $mode_label; ?></em><?php endif; ?>
+                                            <?php echo htmlspecialchars($t['tier_name']); ?> <?php echo formatCurrency($t['price']); ?>
+                                        </span>
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
@@ -490,6 +519,7 @@ $csrf = getCsrfToken();
                                 <th style="min-width:90px;">Price (₱)</th>
                                 <th class="hide-mobile" style="min-width:80px;">Unit</th>
                                 <th class="hide-mobile" style="min-width:70px;">Multiplier</th>
+                                <th style="min-width:100px;">Mode</th>
                                 <th class="td-rm"></th>
                             </tr>
                         </thead>
@@ -550,14 +580,18 @@ $csrf = getCsrfToken();
 
     <script>
     // ── Tier rows ─────────────────────────────────────────────────────────────
-    function addTierRow(name='', price='', unit='pcs', mult='1') {
+    function addTierRow(name='', price='', unit='pcs', mult='1', mode='both') {
         const tbody = document.getElementById('tiersBody');
         const tr = document.createElement('tr');
+        const modeOpts = ['retail','wholesale','both'].map(v =>
+            `<option value="${v}"${v===mode?' selected':''}>${v.charAt(0).toUpperCase()+v.slice(1)}</option>`
+        ).join('');
         tr.innerHTML = `
             <td><input type="text" name="tier_name[]" value="${esc(name)}" placeholder="e.g. Retail" required></td>
             <td><input type="number" name="tier_price[]" value="${esc(price)}" min="0.01" step="0.01" placeholder="0.00" required></td>
             <td class="hide-mobile"><input type="text" name="tier_unit_label[]" value="${esc(unit)}" placeholder="pcs"></td>
             <td class="hide-mobile"><input type="number" name="tier_qty_mult[]" value="${esc(mult)}" min="0.0001" step="0.0001" placeholder="1"></td>
+            <td><select name="tier_mode[]" style="width:100%;padding:6px 4px;border:1.5px solid var(--c-border,#ccc);border-radius:var(--radius-md,6px);font-size:.83rem;background:var(--c-surface,#fff);color:var(--c-text,#111);">${modeOpts}</select></td>
             <td class="td-rm"><button type="button" class="btn-rm-tier" onclick="removeTierRow(this)">×</button></td>
         `;
         tbody.appendChild(tr);
@@ -588,8 +622,8 @@ $csrf = getCsrfToken();
         document.getElementById('fExtraBarcodes').value    = '';
         document.getElementById('tiersBody').innerHTML     = '';
         // Seed with standard tiers
-        addTierRow('Retail', '', 'pcs', '1');
-        addTierRow('Pack',   '', 'pack', '1');
+        addTierRow('Retail',    '', 'pcs',  '1', 'retail');
+        addTierRow('Wholesale', '', 'pcs',  '1', 'wholesale');
         document.getElementById('productModal').classList.add('active');
         document.getElementById('fName').focus();
     }
@@ -614,9 +648,10 @@ $csrf = getCsrfToken();
         document.getElementById('tiersBody').innerHTML = '';
         const tiers = TIERS_MAP[id] || [];
         if (tiers.length) {
-            tiers.forEach(t => addTierRow(t.tier_name, t.price, t.unit_label, t.qty_multiplier));
+            tiers.forEach(t => addTierRow(t.tier_name, t.price, t.unit_label, t.qty_multiplier, t.price_mode || 'both'));
         } else {
-            addTierRow('Retail', p.price_retail || '', 'pcs', '1');
+            addTierRow('Retail',    p.price_retail    || '', 'pcs', '1', 'retail');
+            addTierRow('Wholesale', p.price_wholesale || '', 'pcs', '1', 'wholesale');
         }
 
         // Load extra barcodes (exclude primary)
@@ -651,12 +686,15 @@ $csrf = getCsrfToken();
         const q     = document.getElementById('srchName').value.toLowerCase();
         const cat   = document.getElementById('srchCat').value;
         const stock = document.getElementById('srchStock').value;
+        const mode  = document.getElementById('srchMode').value;
 
         document.querySelectorAll('#productsTable .table-row').forEach(row => {
             const matchQ     = !q     || row.dataset.search.includes(q);
             const matchCat   = !cat   || row.dataset.cat   === cat;
             const matchStock = !stock || row.dataset.stock  === stock;
-            row.style.display = (matchQ && matchCat && matchStock) ? '' : 'none';
+            const modeData   = (row.dataset.mode || '').split(',');
+            const matchMode  = !mode  || modeData.some(m => m === mode || m === 'both');
+            row.style.display = (matchQ && matchCat && matchStock && matchMode) ? '' : 'none';
         });
     }
     </script>

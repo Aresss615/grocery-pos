@@ -10,7 +10,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/helpers.php';
 
 if (!isLoggedIn()) redirect(BASE_URL . '/index.php');
-if (!hasRole('inventory_checker') && !hasRole('admin')) {
+if (!hasAccess('inventory')) {
     redirect(BASE_URL . '/pages/dashboard.php');
 }
 
@@ -25,7 +25,7 @@ $suppliers   = $db->fetchAll("SELECT id, name FROM suppliers ORDER BY name");
 // Products with extra barcodes
 $products = $db->fetchAll(
     "SELECT p.id, p.name, p.barcode, p.quantity, p.min_quantity,
-            p.price_retail, p.price_sarisar, p.price_bulk, p.bulk_unit,
+            p.price_retail, p.price_wholesale,
             c.name AS category_name, c.id AS category_id,
             s.name AS supplier_name, s.id AS supplier_id
      FROM products p
@@ -41,6 +41,28 @@ try {
     $eb = $db->fetchAll("SELECT product_id, barcode FROM product_barcodes");
     foreach ($eb as $row) $extra_barcodes_map[$row['product_id']][] = $row['barcode'];
 } catch (Exception $e) { /* table may not exist */ }
+
+// Pricing tiers map
+$tiers_map = [];
+try {
+    $all_tiers = $db->fetchAll(
+        "SELECT product_id, tier_name, price, price_mode FROM product_price_tiers ORDER BY product_id, sort_order, id"
+    );
+    foreach ($all_tiers as $t) $tiers_map[$t['product_id']][] = $t;
+} catch (Exception $e) { /* table may not exist */ }
+
+// Last sold date per product
+$last_sold_map = [];
+try {
+    $ls = $db->fetchAll(
+        "SELECT si.product_id, MAX(s.created_at) AS last_sold
+         FROM sale_items si
+         JOIN sales s ON s.id = si.sale_id
+         WHERE s.voided = 0
+         GROUP BY si.product_id"
+    );
+    foreach ($ls as $row) $last_sold_map[$row['product_id']] = $row['last_sold'];
+} catch (Exception $e) { /* safe to skip */ }
 
 $csrf = getCsrfToken();
 ?>
@@ -129,7 +151,8 @@ $csrf = getCsrfToken();
                         <th>Supplier</th>
                         <th>Stock</th>
                         <th>Min</th>
-                        <th>Retail / Pack / Bulk</th>
+                        <th>Retail / Wholesale</th>
+                        <th>Last Sold</th>
                         <th style="width:100px">Action</th>
                     </tr>
                 </thead>
@@ -148,10 +171,11 @@ $csrf = getCsrfToken();
                         if ($eb !== $p['barcode']) $all_barcodes[] = $eb;
                     }
 
-                    $prices = [];
-                    if ($p['price_retail'] > 0)  $prices[] = '₱' . number_format($p['price_retail'],2);
-                    if (!empty($p['price_sarisar']) && $p['price_sarisar'] > 0) $prices[] = '₱' . number_format($p['price_sarisar'],2) . ' pk';
-                    if (!empty($p['price_bulk']) && $p['price_bulk'] > 0)       $prices[] = '₱' . number_format($p['price_bulk'],2) . ' ' . ($p['bulk_unit'] ?: 'bulk');
+                    $tiers     = $tiers_map[$p['id']] ?? [];
+                    $last_sold = $last_sold_map[$p['id']] ?? null;
+
+                    // Reorder suggestion: suggest enough to reach 2× min level
+                    $reorder_qty = ($qty !== null && $qty < $min) ? max(0, ($min * 2) - $qty) : 0;
                 ?>
                     <tr data-name="<?php echo strtolower(htmlspecialchars($p['name'])); ?>"
                         data-barcodes="<?php echo implode(' ', $all_barcodes); ?>"
@@ -170,9 +194,33 @@ $csrf = getCsrfToken();
                         <td>
                             <span class="stock-badge <?php echo $badge; ?>"><?php echo $badge_text; ?></span>
                             <?php if ($qty !== null): ?> <strong><?php echo $qty; ?></strong><?php endif; ?>
+                            <?php if ($reorder_qty > 0): ?>
+                                <div style="font-size:.7rem;color:var(--c-warning,#d69e2e);margin-top:2px;">Order ~<?php echo $reorder_qty; ?></div>
+                            <?php endif; ?>
                         </td>
                         <td class="text-muted"><?php echo $min; ?></td>
-                        <td class="text-sm text-muted"><?php echo implode(' / ', $prices); ?></td>
+                        <td class="text-sm">
+                            <?php
+                            $price_parts = [];
+                            if ($p['price_retail'] > 0)    $price_parts[] = '<span style="color:var(--c-text)">₱' . number_format($p['price_retail'],2) . '</span>';
+                            if ($p['price_wholesale'] > 0) $price_parts[] = '<span style="color:#1565c0">₱' . number_format($p['price_wholesale'],2) . ' W</span>';
+                            echo $price_parts ? implode(' / ', $price_parts) : '<span class="text-muted">—</span>';
+                            ?>
+                            <?php if ($tiers): ?>
+                                <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">
+                                <?php foreach ($tiers as $t):
+                                    $tc = ['retail'=>'#2e7d32','wholesale'=>'#1565c0','both'=>'var(--c-text-soft)'][$t['price_mode'] ?? 'both'] ?? 'var(--c-text-soft)';
+                                ?>
+                                    <span style="font-size:.7rem;padding:1px 6px;border-radius:999px;background:var(--c-bg,#f5f5f5);color:<?php echo $tc; ?>;white-space:nowrap;">
+                                        <?php echo htmlspecialchars($t['tier_name']); ?> ₱<?php echo number_format($t['price'],2); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </td>
+                        <td class="text-sm text-muted">
+                            <?php echo $last_sold ? formatDate($last_sold) : '<span style="opacity:.5">—</span>'; ?>
+                        </td>
                         <td>
                             <?php if ($qty !== null): ?>
                                 <button class="btn btn-xs btn-secondary"
@@ -266,20 +314,26 @@ $csrf = getCsrfToken();
 
         function exportInventory() {
             const rows = document.querySelectorAll('#inventoryTable tbody tr');
-            let csv = 'Product,Primary Barcode,Category,Supplier,Stock,Min Level,Retail Price\n';
+            let csv = 'Product,Primary Barcode,Category,Supplier,Stock,Min Level,Retail Price,Wholesale Price,Last Sold\n';
             rows.forEach(row => {
                 if (row.style.display === 'none') return;
-                const cells = row.querySelectorAll('td');
+                const cells    = row.querySelectorAll('td');
                 const name     = '"' + cells[0].textContent.trim().replace(/"/g,'""') + '"';
                 const barcode  = '"' + cells[1].textContent.trim().split('\n')[0].replace(/"/g,'""') + '"';
                 const category = '"' + cells[2].textContent.trim() + '"';
                 const supplier = '"' + cells[3].textContent.trim() + '"';
-                const stock    = cells[4].textContent.trim().replace(/\s+/g,' ');
+                const stock    = cells[4].textContent.trim().replace(/\s+/g,' ').replace(/Order ~\d+/,'').trim();
                 const min      = cells[5].textContent.trim();
-                const price    = '"' + cells[6].textContent.trim() + '"';
-                csv += [name, barcode, category, supplier, stock, min, price].join(',') + '\n';
+                // Parse retail and wholesale from the pricing cell
+                const priceText = cells[6].textContent.trim();
+                const retailMatch     = priceText.match(/₱([\d,]+\.\d{2})(?!\s*W)/);
+                const wholesaleMatch  = priceText.match(/₱([\d,]+\.\d{2})\s*W/);
+                const retail     = retailMatch    ? retailMatch[1]    : '';
+                const wholesale  = wholesaleMatch ? wholesaleMatch[1] : '';
+                const lastSold   = '"' + cells[7].textContent.trim() + '"';
+                csv += [name, barcode, category, supplier, stock, min, retail, wholesale, lastSold].join(',') + '\n';
             });
-            const blob = new Blob(['\uFEFF' + csv, { type: 'text/csv;charset=utf-8;' }]);
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
             const url  = URL.createObjectURL(blob);
             const a    = document.createElement('a');
             a.href = url; a.download = 'inventory_' + new Date().toISOString().slice(0,10) + '.csv';

@@ -6,10 +6,10 @@
 -- ============================================================
 
 -- ── 1. Users: add email, phone, employee_id, last_login ──────
-ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) NULL AFTER name;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20) NULL AFTER email;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id VARCHAR(20) NULL AFTER phone;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP NULL AFTER active;
+ALTER TABLE users ADD COLUMN email VARCHAR(100) NULL AFTER name;
+ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL AFTER email;
+ALTER TABLE users ADD COLUMN employee_id VARCHAR(20) NULL AFTER phone;
+ALTER TABLE users ADD COLUMN last_login TIMESTAMP NULL AFTER active;
 
 -- ── 2. Multiple barcodes per product ──────────────────────────
 CREATE TABLE IF NOT EXISTS product_barcodes (
@@ -61,10 +61,10 @@ SELECT id,
 FROM products WHERE price_bulk > 0 AND price_bulk IS NOT NULL;
 
 -- ── 4. Void tracking on sales ─────────────────────────────────
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS voided TINYINT(1) NOT NULL DEFAULT 0 AFTER notes;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS void_reason VARCHAR(255) NULL AFTER voided;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS voided_by INT NULL AFTER void_reason;
-ALTER TABLE sales ADD COLUMN IF NOT EXISTS voided_at TIMESTAMP NULL AFTER voided_by;
+ALTER TABLE sales ADD COLUMN voided TINYINT(1) NOT NULL DEFAULT 0 AFTER notes;
+ALTER TABLE sales ADD COLUMN void_reason VARCHAR(255) NULL AFTER voided;
+ALTER TABLE sales ADD COLUMN voided_by INT NULL AFTER void_reason;
+ALTER TABLE sales ADD COLUMN voided_at TIMESTAMP NULL AFTER voided_by;
 
 -- ── 5. Cash drawer sessions ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS cash_drawer_sessions (
