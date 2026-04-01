@@ -22,6 +22,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// CSRF validation
+if (!validateCsrf()) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Invalid request (CSRF)']);
+    exit;
+}
+
+// Day-lock check: reject sales after Z-Read
+$biz = getBusinessSettings();
+$day_closed = $biz['day_closed'] ?? null;
+if ($day_closed && $day_closed === date('Y-m-d')) {
+    echo json_encode(['success' => false, 'message' => 'Day is closed. Z-Read has been generated. No more sales allowed today.']);
+    exit;
+}
+
 try {
     $data = json_decode(file_get_contents('php://input'), true);
 

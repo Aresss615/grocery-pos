@@ -22,6 +22,7 @@ if (!isLoggedIn() || !hasAccess('pos')) {
     exit;
 }
 
+$db = new Database();
 $cashier_id = intval($_SESSION['user_id']);
 
 // ── GET — list held carts ─────────────────────────────────────

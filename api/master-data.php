@@ -12,7 +12,7 @@ require_once __DIR__ . '/../config/helpers.php';
 header('Content-Type: application/json');
 
 // Check auth
-if (!isLoggedIn() || !hasRole('admin')) {
+if (!isLoggedIn() || !hasAccess('master_data')) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
@@ -21,6 +21,11 @@ if (!isLoggedIn() || !hasRole('admin')) {
 $db = new Database();
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $type = $_GET['type'] ?? $_POST['type'] ?? ''; // 'category' or 'supplier'
+
+// CSRF validation for state-changing operations
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrf(true);
+}
 
 // CATEGORIES CRUD
 if ($type === 'category') {

@@ -1076,9 +1076,9 @@ function showRec(d) {
     if (d.vat_registered) {
         if (d.vat_inclusive) {
             const net = Math.round((d.subtotal - d.tax) * 100) / 100;
-            vatSection = `<div class="ri"><span>VATable Sales</span><span>₱${f2(net)}</span></div><div class="ri"><span>VAT 12%</span><span>₱${f2(d.tax)}</span></div>`;
+            vatSection = `<div class="ri"><span>VATable Sales</span><span>₱${f2(net)}</span></div><div class="ri"><span>VAT ${Math.round(VAT_RATE*100)}%</span><span>₱${f2(d.tax)}</span></div>`;
         } else {
-            vatSection = `<div class="ri"><span>Subtotal</span><span>₱${f2(d.subtotal)}</span></div><div class="ri"><span>VAT 12%</span><span>₱${f2(d.tax)}</span></div>`;
+            vatSection = `<div class="ri"><span>Subtotal</span><span>₱${f2(d.subtotal)}</span></div><div class="ri"><span>VAT ${Math.round(VAT_RATE*100)}%</span><span>₱${f2(d.tax)}</span></div>`;
         }
     }
 
@@ -1090,7 +1090,7 @@ function showRec(d) {
             <strong>${esc(BIZ_NAME)}</strong><br>
             ${BIZ_ADDRESS ? `<small>${esc(BIZ_ADDRESS)}</small><br>` : ''}
             ${BIZ_TIN ? `<small>TIN: ${esc(BIZ_TIN)}</small><br>` : ''}
-            <small>VAT Registered</small><br>
+            ${d.vat_registered ? '<small>VAT Registered</small><br>' : '<small>Non-VAT</small><br>'}
             <small>${now}</small>
         </div>
         <hr>

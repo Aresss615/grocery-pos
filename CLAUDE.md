@@ -58,7 +58,23 @@ PHP/MySQL grocery POS system for a Philippine store. No framework — vanilla PH
 9. `api/search-product.php` update — DONE
 10. `api/held-carts.php` (new) — DONE
 
-### Phase 4–6: See PLAN.md
+### Phase 4: Manager Portal — DONE
+11. `pages/manager.php` expansion (10 tabs) — DONE
+12. Journal auto-generation (in api/sales.php) — DONE
+13. Ledger aggregation (in manager.php) — DONE
+14. Remittance rework (v4 denomination grid) — DONE
+15. `api/refunds.php` (new) — DONE
+16. Audit trail tab — DONE
+
+### Phase 5: Reports + Users + Master Data — IN PROGRESS
+17. `pages/reports.php` expansion — TODO
+18. `pages/users.php` rework — DONE
+19. `pages/master-data.php` rework — DONE
+20. `api/roles.php` (new) — DONE
+21. `api/settings.php` (new) — DONE
+22. `navbar.php` update — DONE (Phase 1)
+
+### Phase 6: See PLAN.md
 
 ## Progress Log
 
@@ -148,6 +164,60 @@ PHP/MySQL grocery POS system for a Philippine store. No framework — vanilla PH
 - Pricing cell: shows retail (dark) + wholesale (blue) prices; tier pills below in color-coded badges
 - Added "Last Sold" column showing formatted date or "—"
 - CSV export: updated to 9 columns (added Wholesale Price, Last Sold); fixed Blob constructor bug (was `new Blob([str, {type:...}])` — missing closing bracket, now `new Blob([str], {type:...})`)
+
+### 2026-04-01 — Phase 5: Users + Master Data + APIs
+
+**pages/users.php** — Full v4 rewrite:
+- Auth: `hasAccess('users')` (permission-based, replaces `hasRole('admin')`)
+- **Users tab**: table with name, username, email, phone, emp ID, role (from `roles` table), joined date. Add/Edit/Password/Remove modals. Role dropdown now fetched from `roles` table (supports custom roles). INSERT/UPDATE sets both legacy `role` column and new `role_id`. Activity logging on create/edit/delete.
+- **Roles tab**: card grid showing all roles with permission pills, user count, system badge. Create Role modal with name + permission checkbox grid (10 permissions). Edit role (pre-fills existing permissions). Delete custom roles (blocked if users assigned). System roles (admin/manager/cashier/inventory_checker) cannot be deleted.
+- Role badge colors: admin=danger, manager=warning, cashier=success, inventory_checker=info, custom=indigo
+
+**pages/master-data.php** — Full v4 rewrite:
+- Auth: `hasAccess('master_data')` (permission-based)
+- **Categories tab**: card grid layout (replaces plain table). Each card shows name + product count badge. Search bar with live filter. Add/Edit modals. Delete with product count warning.
+- **Suppliers tab**: card grid layout. Each card shows name, contact, email, product count. Search + filter. Add/Edit/Delete.
+- **Business Settings tab** (new): Store info (name, TIN, address), VAT configuration (registered toggle, inclusive toggle, rate input), receipt options (prefix, currency symbol). Saves via AJAX to `api/settings.php`. Toggle switches for boolean settings. Activity logged as 'critical' with old/new values.
+- All tabs use `history.replaceState` for bookmarkable tab URLs
+
+**api/settings.php** — New file:
+- GET: returns current `business_settings` row via `getBusinessSettings()`
+- POST `action=save`: updates business_name, address, TIN, vat_registered, vat_rate, vat_inclusive, receipt_prefix, currency_symbol. Validates business_name required, vat_rate 0–1. Clears cached settings. Logs change summary to activity_log with severity 'critical' and old/new values.
+- Auth: `hasAccess('master_data')` or `hasAccess('settings')`
+
+**api/roles.php** — New file:
+- GET: lists all roles with permissions array + user_count. GET `?id=N` for single role.
+- POST `action=create`: creates custom role with name, slug (auto-generated), permissions. Validates no duplicate name/slug. Logs as 'warning'.
+- POST `action=update`: updates role name + replaces permissions. System roles keep their slug. Refreshes session permissions if current user affected. Logs as 'warning'.
+- POST `action=delete`: deletes custom role only if no users assigned. System roles blocked. Logs as 'critical'.
+- Auth: `hasAccess('users')`
+- All available permissions: dashboard, pos, products, inventory, master_data, users, manager_portal, reports, settings, audit_trail
+
+**api/master-data.php** — Updated auth from `hasRole('admin')` to `hasAccess('master_data')`.
+
+### 2026-04-01 — Phase 4: Manager Portal
+
+**pages/manager.php** — Full v4 expansion (1494 lines, 10 tabs):
+- Auth: `hasAccess('manager_portal')` (permission-based)
+- **X-Read tab**: Real-time sales snapshot — receipt range, gross sales, discounts, refunds, VAT, payment breakdown (cash/gcash/card), cash accountability (cash sales - change given), void summary. Chart.js doughnut for payment mix. Generate X-Read button (saves to register_reads, can run multiple times).
+- **Z-Read tab**: End-of-day report — same data as X-Read plus voids deducted from net sales. Locks day via `business_settings.day_closed = CURDATE()`. Confirmation dialog. Cannot run twice per day. Logs as 'critical' severity.
+- **Remittance tab**: v4 denomination grid (₱1000/500/200/100/50/20 + coins). Cashier selection dropdown with auto-populated expected cash (cash_sales - change_given). Real-time recalculation of actual total and over/short variance. Color-coded (green=exact/over, red=short). Saves to `remittances` table with fallback to legacy `cash_remittals`.
+- **Cashier Summary tab**: Per-cashier breakdown — txn count, gross, discounts, VAT, cash/gcash/card, expected cash, avg transaction. Grand totals row.
+- **Void Log tab**: Today's voided transactions — receipt #, cashier, amount, payment method, sale time, voided by, voided at, reason. Count + total badge in tab.
+- **Journal tab**: Date picker (GET param `jdate`). Entries grouped by reference (sale/void/refund/adjustment). Color-coded ref badges. Debit/credit columns with account codes. Total debits/credits footer.
+- **Ledger tab**: Accounts grouped by type (Assets/Liabilities/Equity/Revenue/Expenses). Card layout showing account code, name, type badge, balance, entry count. Live running totals from journal_entries.
+- **Refunds tab**: Receipt lookup via AJAX to api/refunds.php. Shows sale details, items, refundable balance. Refund amount input (max capped). Reason textarea (required). Recent refunds sidebar with amount, date, processor, reason excerpt.
+- **Audit Trail tab**: Severity filter (All/Info/Warning/Critical) via GET param. Client-side search. Table: time, user, severity badge, action (monospace), details, IP. Read-only, last 200 entries.
+- **Read History tab**: Past X-Read/Z-Read records — type badge, date, transactions, gross, discounts, VAT, cash/gcash/card, voids, generated by, time.
+- Quick stats bar at top: gross sales, transactions, VAT collected, expected cash, discounts, voids
+- Full dark/light theme support with CSS custom properties
+- Tab switching with `history.replaceState` for bookmarkable tabs
+
+**api/refunds.php** — New file (215 lines):
+- GET `?receipt=JJ-000042`: looks up sale by receipt number, returns sale info + items + already_refunded + refundable balance. Validates not voided, not fully refunded.
+- POST `action=process_refund`: creates refund record in `refunds` table, marks sale as refunded (partial or full), auto-generates journal entries (Debit Sales Revenue 4010, Debit VAT Payable 2010, Credit Cash account 1010/1011/1012, Credit Sales Returns & Refunds 4030), updates ledger_accounts balances, logs activity as 'critical'. Full transaction with rollback on error.
+- VAT handling: reads business_settings, supports inclusive back-computation and exclusive add-on
+- Auth: `hasAccess('manager_portal')`
 
 ### 2026-04-01 — Dev Environment Setup (Mac)
 
