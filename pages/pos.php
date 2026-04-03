@@ -441,6 +441,8 @@ body.wholesale-mode .mtb.active{color:#1565C0}
         </button>
         <div class="ph-cashier">👤 <strong><?php echo htmlspecialchars($cashier_name); ?></strong></div>
         <div class="ph-clock" id="clk">--:--</div>
+        <button class="ph-theme" onclick="openEndShift()"
+                style="background:rgba(230,81,0,.2);border-color:rgba(230,81,0,.5)">End Shift</button>
         <button class="ph-theme" onclick="refreshPriceList()" title="Reload product list from server">&#8635; Refresh</button>
         <button class="ph-theme" onclick="toggleTheme()" title="Toggle dark/light">🌙</button>
         <a href="<?php echo BASE_URL; ?>/pages/dashboard.php" class="ph-exit">✕ Exit</a>
@@ -1408,6 +1410,104 @@ renderProds();
 cartEmptyEl = document.getElementById('ce');
 renderCart();
 document.getElementById('smartSearch').focus();
+
+// ── End-of-Shift ──────────────────────────────────────────────
+let esExpectedCash = 0;
+
+function openEndShift() {
+    fetch(`${BASE}/api/shift-summary.php`)
+        .then(r => r.json())
+        .then(d => {
+            esExpectedCash = parseFloat(d.cash_sales) || 0;
+            const total = (parseFloat(d.cash_sales)||0) + (parseFloat(d.gcash_sales)||0) + (parseFloat(d.card_sales)||0);
+            document.getElementById('esStats').innerHTML =
+                `Total sales: <b>&#8369;${f2(total)}</b><br>` +
+                `Cash: <b>&#8369;${f2(d.cash_sales)}</b> ` +
+                `GCash: <b>&#8369;${f2(d.gcash_sales)}</b> ` +
+                `Card: <b>&#8369;${f2(d.card_sales)}</b>`;
+            document.getElementById('esCash').value = '';
+            document.getElementById('esVariance').textContent = '';
+            document.getElementById('esNotes').value = '';
+            document.getElementById('endShiftModal').style.display = 'flex';
+            document.getElementById('esCash').focus();
+        });
+}
+
+function updateVariance(val) {
+    const declared = parseFloat(val) || 0;
+    const variance = declared - esExpectedCash;
+    const el = document.getElementById('esVariance');
+    if (val === '') { el.textContent = ''; return; }
+    el.textContent = variance === 0 ? 'Balanced'
+        : variance > 0 ? `+\u20b1${f2(variance)} over`
+        : `\u20b1${f2(Math.abs(variance))} short`;
+    el.style.color = variance === 0 ? 'var(--success)' : variance > 0 ? 'var(--warning)' : 'var(--primary)';
+}
+
+function closeEndShift() {
+    document.getElementById('endShiftModal').style.display = 'none';
+}
+
+function submitEndShift() {
+    const declared = parseFloat(document.getElementById('esCash').value);
+    if (isNaN(declared) || declared < 0) { toast('Enter cash on hand', 'warn'); return; }
+    const notes = document.getElementById('esNotes').value;
+    const params = new URLSearchParams({
+        declared_cash: declared,
+        notes,
+        csrf_token: CSRF
+    });
+    const printWin = window.open('', '_blank', 'width=400,height=600');
+    fetch(`${BASE}/api/shift-summary.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            closeEndShift();
+            toast('Shift closed. Remittance recorded.', 'ok');
+            if (d.print_html && printWin) openPrintWindow(d.print_html, printWin);
+            else if (printWin) printWin.close();
+        } else {
+            if (printWin) printWin.close();
+            toast(d.error || 'Error closing shift', 'err');
+        }
+    })
+    .catch(() => {
+        if (printWin) printWin.close();
+        toast('Network error', 'err');
+    });
+}
 </script>
+
+<div id="endShiftModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+     z-index:5000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--r-lg);padding:24px 28px;
+              width:340px;box-shadow:var(--sh-lg)">
+    <h3 style="margin-bottom:14px;font-size:1rem;color:var(--text)">End of Shift</h3>
+    <div id="esStats" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.8"></div>
+    <label style="font-size:.82rem;font-weight:600;color:var(--text)">Cash on hand (&#8369;):</label>
+    <input type="number" id="esCash" min="0" step="0.01" placeholder="0.00"
+           style="width:100%;margin:6px 0 12px;padding:8px 10px;border:1.5px solid var(--border);
+                  border-radius:var(--r);background:var(--bg);color:var(--text);font-size:.95rem"
+           oninput="updateVariance(this.value)">
+    <div id="esVariance" style="font-size:.85rem;font-weight:700;margin-bottom:12px;min-height:18px"></div>
+    <label style="font-size:.82rem;font-weight:600;color:var(--text)">Notes (optional):</label>
+    <textarea id="esNotes" rows="2"
+              style="width:100%;margin:6px 0 14px;padding:8px 10px;border:1.5px solid var(--border);
+                     border-radius:var(--r);background:var(--bg);color:var(--text);
+                     font-size:.82rem;resize:none"></textarea>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeEndShift()"
+              style="flex:1;padding:9px;border-radius:var(--r);border:1.5px solid var(--border);
+                     background:var(--surface);color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>
+      <button onclick="submitEndShift()"
+              style="flex:1;padding:9px;border-radius:var(--r);border:none;background:var(--primary);
+                     color:#fff;cursor:pointer;font-family:var(--font);font-weight:700">Confirm Remittance</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
