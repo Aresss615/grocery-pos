@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/helpers.php';
 
-if (!isLoggedIn()) { http_response_code(401); echo json_encode(['error'=>'Unauthorized']); exit; }
+if (!isLoggedIn() || !hasAccess('pos')) { http_response_code(403); echo json_encode(['error'=>'Forbidden']); exit; }
 
 $products = $db->fetchAll(
     "SELECT p.id, p.name, p.barcode, p.price_retail, p.price_wholesale,

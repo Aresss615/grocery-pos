@@ -745,7 +745,9 @@ function addToCart(pid) {
         ex.qty = newQty;
     } else {
         if (p.quantity !== null && qty > p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
-        cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, qty, stock: p.quantity, discount_type: 'none', discount_value: 0 });
+        const matchTier = (p.tiers || []).find(t => (t.price_mode || 'both') === priceMode || (t.price_mode || 'both') === 'both');
+        const unitLabel = matchTier ? (matchTier.unit_label || 'pcs') : 'pcs';
+        cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, unit: unitLabel, qty, stock: p.quantity, discount_type: 'none', discount_value: 0 });
     }
     pendingQty = 1;
     document.getElementById('qtyInput').value = 1;
