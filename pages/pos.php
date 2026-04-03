@@ -140,11 +140,6 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text)}
 .ph{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--primary);color:#fff;flex-shrink:0;height:52px;z-index:100}
 .ph-logo{font-weight:800;font-size:.95rem;white-space:nowrap}
 .ph-logo small{opacity:.65;font-weight:400;font-size:.72rem;margin-left:5px}
-.ph-scan{flex:1;max-width:380px;position:relative}
-.ph-scan .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.7;pointer-events:none}
-#barcodeInput{width:100%;padding:6px 11px 6px 30px;border-radius:7px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-family:var(--font);font-size:.88rem;outline:none;transition:var(--t)}
-#barcodeInput::placeholder{color:rgba(255,255,255,.55)}
-#barcodeInput:focus{border-color:rgba(255,255,255,.75);background:rgba(255,255,255,.2)}
 .ph-right{display:flex;align-items:center;gap:8px;font-size:.76rem;white-space:nowrap}
 /* Retail/Wholesale toggle */
 .mode-toggle{display:flex;gap:2px;background:rgba(0,0,0,.2);border-radius:6px;padding:2px}
@@ -178,9 +173,20 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .cb:hover{background:#FFF5F5;border-color:var(--primary);color:var(--primary)}
 .cb.active{background:var(--primary);border-color:var(--primary);color:#fff}
 [data-theme="dark"] .cb:hover{background:#2d1010}
-.pp-search{padding:7px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.pp-search{padding:7px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative}
 .pp-search input{width:100%;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--font);font-size:.83rem;background:var(--bg);color:var(--text);outline:none;transition:var(--t)}
 .pp-search input:focus{border-color:var(--primary)}
+.sr-list { position:absolute; top:100%; left:0; right:0; background:var(--surface);
+           border:1.5px solid var(--border); border-top:none;
+           border-radius:0 0 var(--r) var(--r); max-height:260px; overflow-y:auto;
+           z-index:200; box-shadow:var(--sh-lg); }
+.sr-item { padding:8px 12px; cursor:pointer; display:flex; gap:8px; align-items:center;
+           border-bottom:1px solid var(--border); font-size:.82rem; }
+.sr-item:last-child { border-bottom:none; }
+.sr-item:hover, .sr-item.focused { background:var(--card-hover); }
+.sr-item .sr-name  { flex:1; font-weight:600; color:var(--text); }
+.sr-item .sr-price { color:var(--primary); font-weight:700; white-space:nowrap; }
+.sr-item .sr-stk   { font-size:.7rem; color:var(--muted); }
 .pg{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;align-content:start}
 .pg::-webkit-scrollbar{width:3px}
 .pg::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -406,10 +412,6 @@ body.wholesale-mode .mtb.active{color:#1565C0}
         <?php endif; ?>
         <?php echo $biz_name; ?><small>REG-01</small>
     </div>
-    <div class="ph-scan">
-        <span class="si">🔍</span>
-        <input type="text" id="barcodeInput" placeholder="Scan barcode or search…" autocomplete="off" autofocus>
-    </div>
     <div class="ph-right">
         <div class="mode-toggle">
             <button class="mtb active" id="btnRetail"    onclick="setPriceMode('retail',this)">Retail</button>
@@ -436,7 +438,11 @@ body.wholesale-mode .mtb.active{color:#1565C0}
             <?php endforeach; ?>
         </div>
         <div class="pp-search">
-            <input type="text" id="ps" placeholder="Search product name…" oninput="renderProds()">
+            <input type="text" id="smartSearch" autocomplete="off" autocorrect="off" spellcheck="false"
+                   placeholder="Scan barcode or type product name…  [Enter] to add"
+                   oninput="onSmartInput(this.value)"
+                   onkeydown="onSmartKey(event)">
+            <div class="sr-list" id="srList" style="display:none"></div>
         </div>
         <div class="pg" id="pg"></div>
     </div>
@@ -615,6 +621,8 @@ let itemDiscKey = null;   // which item is being discounted
 let itemDiscType = 'percent';
 let txnDiscType  = 'percent';
 let cartEmptyEl = null;   // cached reference to the empty-cart element
+let srFocusIdx = -1;
+let srResults  = [];
 
 // ── Clock ─────────────────────────────────────────────────────
 function updateClock(){ document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true}); }
@@ -662,7 +670,7 @@ function getPrice(p, mode) {
 // ── Render products ───────────────────────────────────────────
 function renderProds() {
     const grid = document.getElementById('pg');
-    const q    = (document.getElementById('ps').value || '').toLowerCase().trim();
+    const q    = (document.getElementById('smartSearch').value || '').toLowerCase().trim();
     const list = PRODS.filter(p => {
         const catOk = curCat === 'all' || String(p.category_id) === String(curCat);
         const qOk   = !q || p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.includes(q));
@@ -1165,14 +1173,14 @@ function newSale() {
     cart = []; txnDiscount = {type:'none',value:0};
     document.getElementById('custName').value = '';
     renderCart(); renderProds();
-    document.getElementById('barcodeInput').focus();
+    document.getElementById('smartSearch').focus();
 }
 
 // ── Modals ────────────────────────────────────────────────────
 function closeMo() {
     document.querySelectorAll('.mo').forEach(m => m.classList.remove('open'));
     const ok = document.getElementById('pmOk'); ok.disabled = false; ok.textContent = 'Confirm';
-    document.getElementById('barcodeInput').focus();
+    document.getElementById('smartSearch').focus();
 }
 
 // ── Toast ─────────────────────────────────────────────────────
@@ -1183,20 +1191,83 @@ function toast(msg, type = '') {
     clearTimeout(ttimer); ttimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
-// ── Barcode scanner input ─────────────────────────────────────
-const bi = document.getElementById('barcodeInput');
-let scanTmr;
-bi.addEventListener('input', function() {
-    clearTimeout(scanTmr);
-    scanTmr = setTimeout(() => {
-        const v = this.value.trim();
-        if (v.length >= 4) { addByBarcode(v); this.value = ''; }
-        else if (v.length > 0) { document.getElementById('ps').value = v; renderProds(); this.value = ''; }
-    }, 100);
-});
-bi.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { clearTimeout(scanTmr); const v = this.value.trim(); if (v) { addByBarcode(v); this.value = ''; } }
-});
+// ── Smart search field ─────────────────────────────────────────
+function onSmartInput(val) {
+    const q = val.trim();
+    srFocusIdx = -1;
+    if (!q) { hideSrList(); return; }
+    const list = PRODS.filter(p =>
+        p.name.toLowerCase().includes(q.toLowerCase()) ||
+        (p.barcode && p.barcode.includes(q))
+    ).slice(0, 12);
+    srResults = list;
+    const ul = document.getElementById('srList');
+    if (!list.length) { hideSrList(); return; }
+    ul.textContent = '';
+    list.forEach((p, i) => {
+        const pr  = getPrice(p);
+        const stk = p.quantity !== null ? `${p.quantity} left` : '';
+        const div = document.createElement('div');
+        div.className = 'sr-item';
+        div.dataset.idx = i;
+        div.addEventListener('mousedown', () => srSelect(i));
+        const nm = document.createElement('span'); nm.className = 'sr-name'; nm.textContent = p.name;
+        const sk = document.createElement('span'); sk.className = 'sr-stk';  sk.textContent = stk;
+        const pr2 = document.createElement('span'); pr2.className = 'sr-price'; pr2.textContent = '₱' + f2(pr);
+        div.appendChild(nm); div.appendChild(sk); div.appendChild(pr2);
+        ul.appendChild(div);
+    });
+    ul.style.display = '';
+}
+
+function onSmartKey(e) {
+    const ul      = document.getElementById('srList');
+    const visible = ul.style.display !== 'none' && srResults.length > 0;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (visible) { srFocusIdx = Math.min(srFocusIdx + 1, srResults.length - 1); updateSrFocus(); }
+        return;
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (visible) { srFocusIdx = Math.max(srFocusIdx - 1, -1); updateSrFocus(); }
+        return;
+    }
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (visible && srFocusIdx >= 0) {
+            srSelect(srFocusIdx);
+        } else {
+            const v = e.target.value.trim();
+            if (v) addByBarcode(v);
+        }
+        e.target.value = '';
+        hideSrList();
+        return;
+    }
+    if (e.key === 'Escape') { hideSrList(); e.target.value = ''; }
+}
+
+function updateSrFocus() {
+    document.querySelectorAll('.sr-item').forEach((el, i) =>
+        el.classList.toggle('focused', i === srFocusIdx)
+    );
+}
+
+function srSelect(idx) {
+    const p = srResults[idx];
+    if (p) addToCart(p.id);
+    const field = document.getElementById('smartSearch');
+    field.value = '';
+    hideSrList();
+    field.focus();
+}
+
+function hideSrList() {
+    srResults  = [];
+    srFocusIdx = -1;
+    document.getElementById('srList').style.display = 'none';
+}
 
 // ── Keyboard shortcuts (Ctrl+key) ─────────────────────────────
 document.addEventListener('keydown', function(e) {
@@ -1211,7 +1282,7 @@ document.addEventListener('keydown', function(e) {
             '3': () => openPay('card'),
             'h': () => holdCart(),
             'r': () => openHeldModal(),
-            'b': () => bi.focus(),
+            'b': () => document.getElementById('smartSearch').focus(),
             'm': () => setPriceMode(priceMode === 'retail' ? 'wholesale' : 'retail'),
         };
         if (map[e.key.toLowerCase()]) { e.preventDefault(); map[e.key.toLowerCase()](); return; }
@@ -1222,7 +1293,7 @@ document.addEventListener('keydown', function(e) {
     // Auto-focus scanner on printable key
     const tag = e.target.tagName;
     const inInput = (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
-    if (!inInput && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) bi.focus();
+    if (!inInput && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) document.getElementById('smartSearch').focus();
 });
 
 // ── Init ──────────────────────────────────────────────────────
@@ -1230,6 +1301,7 @@ loadHeldCarts();
 renderProds();
 cartEmptyEl = document.getElementById('ce');
 renderCart();
+document.getElementById('smartSearch').focus();
 </script>
 </body>
 </html>
