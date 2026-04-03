@@ -433,6 +433,7 @@ body.wholesale-mode .mtb.active{color:#1565C0}
         </button>
         <div class="ph-cashier">👤 <strong><?php echo htmlspecialchars($cashier_name); ?></strong></div>
         <div class="ph-clock" id="clk">--:--</div>
+        <button class="ph-theme" onclick="refreshPriceList()" title="Reload product list from server">&#8635; Refresh</button>
         <button class="ph-theme" onclick="toggleTheme()" title="Toggle dark/light">🌙</button>
         <a href="<?php echo BASE_URL; ?>/pages/dashboard.php" class="ph-exit">✕ Exit</a>
     </div>
@@ -647,6 +648,20 @@ function toggleTheme(){
     document.documentElement.setAttribute('data-theme', next);
     document.cookie = 'pos_theme=' + next + ';path=/;max-age=31536000';
     localStorage.setItem('pos_theme', next);
+}
+
+// ── Refresh price list ──────────────────────────────────────────
+function refreshPriceList() {
+    fetch(`${BASE}/api/products-refresh.php`)
+        .then(r => r.json())
+        .then(data => {
+            if (!Array.isArray(data)) { toast('Refresh failed', 'err'); return; }
+            PRODS.length = 0;
+            data.forEach(p => PRODS.push(p));
+            renderProds();
+            toast('Price list updated', 'ok');
+        })
+        .catch(() => toast('Refresh failed — check connection', 'err'));
 }
 
 // ── Price mode ─────────────────────────────────────────────────
