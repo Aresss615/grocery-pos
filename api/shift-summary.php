@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $db->execute(
         "INSERT INTO shift_closures (cashier_id, cashier_name, shift_start, shift_end, expected_cash, declared_cash, gcash_total, card_total, notes)
          VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?)",
-        [$uid, $user['name'], $totals['shift_start'] ?? date('Y-m-d H:i:s'),
+        [$uid, $user['name'], !empty($totals['shift_start']) ? $totals['shift_start'] : date('Y-m-d H:i:s'),
          $expected, $declared, $totals['gcash_sales']??0, $totals['card_sales']??0, $notes],
         "issdddds"
     );
