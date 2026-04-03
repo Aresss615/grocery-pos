@@ -176,7 +176,7 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .pp-search{padding:7px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative}
 .pp-search input{width:100%;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--font);font-size:.83rem;background:var(--bg);color:var(--text);outline:none;transition:var(--t)}
 .pp-search input:focus{border-color:var(--primary)}
-.sr-list { position:absolute; top:100%; left:0; right:0; background:var(--surface);
+.sr-list { position:fixed; background:var(--surface);
            border:1.5px solid var(--border); border-top:none;
            border-radius:0 0 var(--r) var(--r); max-height:260px; overflow-y:auto;
            z-index:200; box-shadow:var(--sh-lg); }
@@ -1251,6 +1251,10 @@ function onSmartInput(val) {
         div.appendChild(nm); div.appendChild(sk); div.appendChild(pr2);
         ul.appendChild(div);
     });
+    const rect = document.getElementById('smartSearch').getBoundingClientRect();
+    ul.style.left  = rect.left + 'px';
+    ul.style.top   = rect.bottom + 'px';
+    ul.style.width = rect.width + 'px';
     ul.style.display = '';
 }
 
