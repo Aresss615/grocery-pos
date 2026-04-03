@@ -187,23 +187,26 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .sr-item .sr-name  { flex:1; font-weight:600; color:var(--text); }
 .sr-item .sr-price { color:var(--primary); font-weight:700; white-space:nowrap; }
 .sr-item .sr-stk   { font-size:.7rem; color:var(--muted); }
-.pg{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;align-content:start}
+.pg{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:3px;align-content:start}
 .pg::-webkit-scrollbar{width:3px}
 .pg::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.pc{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:10px 8px 8px;cursor:pointer;transition:var(--t);display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;user-select:none;position:relative;overflow:hidden}
-.pc:hover{border-color:var(--primary);background:var(--card-hover);box-shadow:var(--sh);transform:translateY(-2px)}
-.pc:active{transform:scale(.97)}
-.pc .pc-icon{font-size:1.9rem;line-height:1}
-.pc .pc-name{font-size:.75rem;font-weight:600;color:var(--text);line-height:1.3;max-height:2.4em;overflow:hidden}
-.pc .pc-price{font-size:.92rem;font-weight:800;color:var(--primary)}
-.pc .pc-stk{font-size:.65rem;color:var(--muted);position:absolute;top:4px;right:5px}
-.pc .pc-stk.low{color:#E65100;font-weight:700}
-.pc .pc-stk.out{color:#C62828;font-weight:700}
-.pc.out-of-stock{opacity:.42;pointer-events:none}
+.pc{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+     padding:7px 12px;cursor:pointer;transition:var(--t);
+     display:flex;flex-direction:row;align-items:center;gap:10px;
+     user-select:none;position:relative;}
+.pc:hover{border-color:var(--primary);background:var(--card-hover);box-shadow:var(--sh);}
+.pc:active{transform:scale(.99);}
+.pc .pc-icon{font-size:1.1rem;flex-shrink:0;width:24px;text-align:center;}
+.pc .pc-name{flex:1;font-size:.82rem;font-weight:600;color:var(--text);}
+.pc .pc-price{font-size:.88rem;font-weight:800;color:var(--primary);white-space:nowrap;}
+.pc .pc-stk{font-size:.68rem;color:var(--muted);white-space:nowrap;position:static;}
+.pc .pc-stk.low{color:#E65100;font-weight:700;}
+.pc .pc-stk.out{color:#C62828;font-weight:700;}
+.pc.out-of-stock{opacity:.42;pointer-events:none;}
 .pg-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 20px;font-size:.88rem}
 
 /* ── Cart ── */
-.cart{width:355px;flex-shrink:0;display:flex;flex-direction:column;background:var(--cart-bg);color:var(--cart-text)}
+.cart{width:420px;flex-shrink:0;display:flex;flex-direction:column;background:var(--cart-bg);color:var(--cart-text)}
 .cart-hdr{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
 .cart-hdr h3{font-size:.87rem;font-weight:700;opacity:.9}
 .cart-cnt{background:var(--primary);color:#fff;border-radius:20px;padding:1px 9px;font-size:.72rem;font-weight:700}
@@ -826,7 +829,7 @@ function renderCart() {
         return `<div class="ci">
             <div class="ci-info">
                 <div class="ci-nm">${esc(i.name)}</div>
-                <div class="ci-mt">₱${f2(i.price)} × ${i.qty} (${i.mode})</div>
+                <div class="ci-mt">&#8369;${f2(i.price)} \xd7 ${i.qty} ${i.unit || 'pcs'} (${i.mode})</div>
                 ${discLabel ? `<div class="ci-disc">${discLabel} discount</div>` : ''}
                 <div class="ci-q">
                     <button class="ci-qb" onclick="updQty('${i.key}',-1)">−</button>
