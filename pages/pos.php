@@ -140,11 +140,6 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--text)}
 .ph{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--primary);color:#fff;flex-shrink:0;height:52px;z-index:100}
 .ph-logo{font-weight:800;font-size:.95rem;white-space:nowrap}
 .ph-logo small{opacity:.65;font-weight:400;font-size:.72rem;margin-left:5px}
-.ph-scan{flex:1;max-width:380px;position:relative}
-.ph-scan .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.7;pointer-events:none}
-#barcodeInput{width:100%;padding:6px 11px 6px 30px;border-radius:7px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-family:var(--font);font-size:.88rem;outline:none;transition:var(--t)}
-#barcodeInput::placeholder{color:rgba(255,255,255,.55)}
-#barcodeInput:focus{border-color:rgba(255,255,255,.75);background:rgba(255,255,255,.2)}
 .ph-right{display:flex;align-items:center;gap:8px;font-size:.76rem;white-space:nowrap}
 /* Retail/Wholesale toggle */
 .mode-toggle{display:flex;gap:2px;background:rgba(0,0,0,.2);border-radius:6px;padding:2px}
@@ -178,26 +173,40 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .cb:hover{background:#FFF5F5;border-color:var(--primary);color:var(--primary)}
 .cb.active{background:var(--primary);border-color:var(--primary);color:#fff}
 [data-theme="dark"] .cb:hover{background:#2d1010}
-.pp-search{padding:7px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.pp-search{padding:7px 10px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative}
 .pp-search input{width:100%;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--font);font-size:.83rem;background:var(--bg);color:var(--text);outline:none;transition:var(--t)}
 .pp-search input:focus{border-color:var(--primary)}
-.pg{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;align-content:start}
+.sr-list { position:absolute; top:100%; left:0; right:0; background:var(--surface);
+           border:1.5px solid var(--border); border-top:none;
+           border-radius:0 0 var(--r) var(--r); max-height:260px; overflow-y:auto;
+           z-index:200; box-shadow:var(--sh-lg); }
+.sr-item { padding:8px 12px; cursor:pointer; display:flex; gap:8px; align-items:center;
+           border-bottom:1px solid var(--border); font-size:.82rem; }
+.sr-item:last-child { border-bottom:none; }
+.sr-item:hover, .sr-item.focused { background:var(--card-hover); }
+.sr-item .sr-name  { flex:1; font-weight:600; color:var(--text); }
+.sr-item .sr-price { color:var(--primary); font-weight:700; white-space:nowrap; }
+.sr-item .sr-stk   { font-size:.7rem; color:var(--muted); }
+.pg{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:3px;align-content:start}
 .pg::-webkit-scrollbar{width:3px}
 .pg::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.pc{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:10px 8px 8px;cursor:pointer;transition:var(--t);display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;user-select:none;position:relative;overflow:hidden}
-.pc:hover{border-color:var(--primary);background:var(--card-hover);box-shadow:var(--sh);transform:translateY(-2px)}
-.pc:active{transform:scale(.97)}
-.pc .pc-icon{font-size:1.9rem;line-height:1}
-.pc .pc-name{font-size:.75rem;font-weight:600;color:var(--text);line-height:1.3;max-height:2.4em;overflow:hidden}
-.pc .pc-price{font-size:.92rem;font-weight:800;color:var(--primary)}
-.pc .pc-stk{font-size:.65rem;color:var(--muted);position:absolute;top:4px;right:5px}
-.pc .pc-stk.low{color:#E65100;font-weight:700}
-.pc .pc-stk.out{color:#C62828;font-weight:700}
-.pc.out-of-stock{opacity:.42;pointer-events:none}
+.pc{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+     padding:7px 12px;cursor:pointer;transition:var(--t);
+     display:flex;flex-direction:row;align-items:center;gap:10px;
+     user-select:none;position:relative;}
+.pc:hover{border-color:var(--primary);background:var(--card-hover);box-shadow:var(--sh);}
+.pc:active{transform:scale(.99);}
+.pc .pc-icon{font-size:1.1rem;flex-shrink:0;width:24px;text-align:center;}
+.pc .pc-name{flex:1;font-size:.82rem;font-weight:600;color:var(--text);}
+.pc .pc-price{font-size:.88rem;font-weight:800;color:var(--primary);white-space:nowrap;}
+.pc .pc-stk{font-size:.68rem;color:var(--muted);white-space:nowrap;position:static;}
+.pc .pc-stk.low{color:#E65100;font-weight:700;}
+.pc .pc-stk.out{color:#C62828;font-weight:700;}
+.pc.out-of-stock{opacity:.42;pointer-events:none;}
 .pg-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 20px;font-size:.88rem}
 
 /* ── Cart ── */
-.cart{width:355px;flex-shrink:0;display:flex;flex-direction:column;background:var(--cart-bg);color:var(--cart-text)}
+.cart{width:420px;flex-shrink:0;display:flex;flex-direction:column;background:var(--cart-bg);color:var(--cart-text)}
 .cart-hdr{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
 .cart-hdr h3{font-size:.87rem;font-weight:700;opacity:.9}
 .cart-cnt{background:var(--primary);color:#fff;border-radius:20px;padding:1px 9px;font-size:.72rem;font-weight:700}
@@ -406,20 +415,25 @@ body.wholesale-mode .mtb.active{color:#1565C0}
         <?php endif; ?>
         <?php echo $biz_name; ?><small>REG-01</small>
     </div>
-    <div class="ph-scan">
-        <span class="si">🔍</span>
-        <input type="text" id="barcodeInput" placeholder="Scan barcode or search…" autocomplete="off" autofocus>
-    </div>
     <div class="ph-right">
         <div class="mode-toggle">
             <button class="mtb active" id="btnRetail"    onclick="setPriceMode('retail',this)">Retail</button>
             <button class="mtb"        id="btnWholesale" onclick="setPriceMode('wholesale',this)">Wholesale</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+            <label style="color:rgba(255,255,255,.6);font-size:.72rem;white-space:nowrap">Qty [*]</label>
+            <input type="number" id="qtyInput" min="1" max="9999" value="1"
+                   style="width:56px;padding:5px 7px;border-radius:6px;border:2px solid rgba(255,255,255,.3);
+                          background:rgba(255,255,255,.14);color:#fff;font-family:var(--font);font-size:.85rem;
+                          text-align:center;outline:none"
+                   onkeydown="onQtyKey(event)">
         </div>
         <button class="held-badge" id="heldBadge" onclick="openHeldModal()" title="Held carts (Ctrl+R)">
             🗂️ Held <span class="hb-cnt" id="heldCount">0</span>/3
         </button>
         <div class="ph-cashier">👤 <strong><?php echo htmlspecialchars($cashier_name); ?></strong></div>
         <div class="ph-clock" id="clk">--:--</div>
+        <button class="ph-theme" onclick="refreshPriceList()" title="Reload product list from server">&#8635; Refresh</button>
         <button class="ph-theme" onclick="toggleTheme()" title="Toggle dark/light">🌙</button>
         <a href="<?php echo BASE_URL; ?>/pages/dashboard.php" class="ph-exit">✕ Exit</a>
     </div>
@@ -436,7 +450,11 @@ body.wholesale-mode .mtb.active{color:#1565C0}
             <?php endforeach; ?>
         </div>
         <div class="pp-search">
-            <input type="text" id="ps" placeholder="Search product name…" oninput="renderProds()">
+            <input type="text" id="smartSearch" autocomplete="off" autocorrect="off" spellcheck="false"
+                   placeholder="Scan barcode or type product name…  [Enter] to add"
+                   oninput="onSmartInput(this.value)"
+                   onkeydown="onSmartKey(event)">
+            <div class="sr-list" id="srList" style="display:none"></div>
         </div>
         <div class="pg" id="pg"></div>
     </div>
@@ -606,6 +624,7 @@ const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 // ── State ─────────────────────────────────────────────────────
 let cart        = [];     // [{key, pid, name, price, mode, qty, stock, discount_type, discount_value}]
 let priceMode   = 'retail';
+let pendingQty  = 1;
 let curCat      = 'all';
 let payMeth     = 'cash';
 let lastSale    = null;
@@ -615,6 +634,8 @@ let itemDiscKey = null;   // which item is being discounted
 let itemDiscType = 'percent';
 let txnDiscType  = 'percent';
 let cartEmptyEl = null;   // cached reference to the empty-cart element
+let srFocusIdx = -1;
+let srResults  = [];
 
 // ── Clock ─────────────────────────────────────────────────────
 function updateClock(){ document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true}); }
@@ -627,6 +648,20 @@ function toggleTheme(){
     document.documentElement.setAttribute('data-theme', next);
     document.cookie = 'pos_theme=' + next + ';path=/;max-age=31536000';
     localStorage.setItem('pos_theme', next);
+}
+
+// ── Refresh price list ──────────────────────────────────────────
+function refreshPriceList() {
+    fetch(`${BASE}/api/products-refresh.php`)
+        .then(r => r.json())
+        .then(data => {
+            if (!Array.isArray(data)) { toast('Refresh failed', 'err'); return; }
+            PRODS.length = 0;
+            data.forEach(p => PRODS.push(p));
+            renderProds();
+            toast('Price list updated', 'ok');
+        })
+        .catch(() => toast('Refresh failed — check connection', 'err'));
 }
 
 // ── Price mode ─────────────────────────────────────────────────
@@ -662,7 +697,7 @@ function getPrice(p, mode) {
 // ── Render products ───────────────────────────────────────────
 function renderProds() {
     const grid = document.getElementById('pg');
-    const q    = (document.getElementById('ps').value || '').toLowerCase().trim();
+    const q    = (document.getElementById('smartSearch').value || '').toLowerCase().trim();
     const list = PRODS.filter(p => {
         const catOk = curCat === 'all' || String(p.category_id) === String(curCat);
         const qOk   = !q || p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.includes(q));
@@ -701,14 +736,21 @@ function addToCart(pid) {
     if (!p) return;
     const pr = getPrice(p);
     if (pr <= 0) { toast('No price for ' + priceMode + ' mode', 'warn'); return; }
+    const qty = pendingQty;
     const key = `${pid}_${priceMode}`;
     const ex  = cart.find(i => i.key === key);
     if (ex) {
-        if (p.quantity !== null && ex.qty >= p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
-        ex.qty++;
+        const newQty = ex.qty + qty;
+        if (p.quantity !== null && newQty > p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
+        ex.qty = newQty;
     } else {
-        cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, qty: 1, stock: p.quantity, discount_type: 'none', discount_value: 0 });
+        if (p.quantity !== null && qty > p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
+        const matchTier = (p.tiers || []).find(t => (t.price_mode || 'both') === priceMode || (t.price_mode || 'both') === 'both');
+        const unitLabel = matchTier ? (matchTier.unit_label || 'pcs') : 'pcs';
+        cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, unit: unitLabel, qty, stock: p.quantity, discount_type: 'none', discount_value: 0 });
     }
+    pendingQty = 1;
+    document.getElementById('qtyInput').value = 1;
     renderCart();
     toast(p.name + ' added', 'ok');
 }
@@ -804,7 +846,7 @@ function renderCart() {
         return `<div class="ci">
             <div class="ci-info">
                 <div class="ci-nm">${esc(i.name)}</div>
-                <div class="ci-mt">₱${f2(i.price)} × ${i.qty} (${i.mode})</div>
+                <div class="ci-mt">&#8369;${f2(i.price)} \xd7 ${i.qty} ${i.unit || 'pcs'} (${i.mode})</div>
                 ${discLabel ? `<div class="ci-disc">${discLabel} discount</div>` : ''}
                 <div class="ci-q">
                     <button class="ci-qb" onclick="updQty('${i.key}',-1)">−</button>
@@ -1165,14 +1207,14 @@ function newSale() {
     cart = []; txnDiscount = {type:'none',value:0};
     document.getElementById('custName').value = '';
     renderCart(); renderProds();
-    document.getElementById('barcodeInput').focus();
+    document.getElementById('smartSearch').focus();
 }
 
 // ── Modals ────────────────────────────────────────────────────
 function closeMo() {
     document.querySelectorAll('.mo').forEach(m => m.classList.remove('open'));
     const ok = document.getElementById('pmOk'); ok.disabled = false; ok.textContent = 'Confirm';
-    document.getElementById('barcodeInput').focus();
+    document.getElementById('smartSearch').focus();
 }
 
 // ── Toast ─────────────────────────────────────────────────────
@@ -1183,23 +1225,110 @@ function toast(msg, type = '') {
     clearTimeout(ttimer); ttimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
-// ── Barcode scanner input ─────────────────────────────────────
-const bi = document.getElementById('barcodeInput');
-let scanTmr;
-bi.addEventListener('input', function() {
-    clearTimeout(scanTmr);
-    scanTmr = setTimeout(() => {
-        const v = this.value.trim();
-        if (v.length >= 4) { addByBarcode(v); this.value = ''; }
-        else if (v.length > 0) { document.getElementById('ps').value = v; renderProds(); this.value = ''; }
-    }, 100);
-});
-bi.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { clearTimeout(scanTmr); const v = this.value.trim(); if (v) { addByBarcode(v); this.value = ''; } }
-});
+// ── Smart search field ─────────────────────────────────────────
+function onSmartInput(val) {
+    const q = val.trim();
+    srFocusIdx = -1;
+    if (!q) { hideSrList(); return; }
+    const list = PRODS.filter(p =>
+        p.name.toLowerCase().includes(q.toLowerCase()) ||
+        (p.barcode && p.barcode.includes(q))
+    ).slice(0, 12);
+    srResults = list;
+    const ul = document.getElementById('srList');
+    if (!list.length) { hideSrList(); return; }
+    ul.textContent = '';
+    list.forEach((p, i) => {
+        const pr  = getPrice(p);
+        const stk = p.quantity !== null ? `${p.quantity} left` : '';
+        const div = document.createElement('div');
+        div.className = 'sr-item';
+        div.dataset.idx = i;
+        div.addEventListener('mousedown', () => srSelect(i));
+        const nm = document.createElement('span'); nm.className = 'sr-name'; nm.textContent = p.name;
+        const sk = document.createElement('span'); sk.className = 'sr-stk';  sk.textContent = stk;
+        const pr2 = document.createElement('span'); pr2.className = 'sr-price'; pr2.textContent = '₱' + f2(pr);
+        div.appendChild(nm); div.appendChild(sk); div.appendChild(pr2);
+        ul.appendChild(div);
+    });
+    ul.style.display = '';
+}
+
+function onSmartKey(e) {
+    const ul      = document.getElementById('srList');
+    const visible = ul.style.display !== 'none' && srResults.length > 0;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (visible) { srFocusIdx = Math.min(srFocusIdx + 1, srResults.length - 1); updateSrFocus(); }
+        return;
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (visible) { srFocusIdx = Math.max(srFocusIdx - 1, -1); updateSrFocus(); }
+        return;
+    }
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (visible && srFocusIdx >= 0) {
+            srSelect(srFocusIdx);
+        } else {
+            const v = e.target.value.trim();
+            if (v) addByBarcode(v);
+        }
+        e.target.value = '';
+        hideSrList();
+        return;
+    }
+    if (e.key === 'Escape') { hideSrList(); e.target.value = ''; }
+}
+
+function updateSrFocus() {
+    document.querySelectorAll('.sr-item').forEach((el, i) =>
+        el.classList.toggle('focused', i === srFocusIdx)
+    );
+}
+
+function srSelect(idx) {
+    const p = srResults[idx];
+    if (p) addToCart(p.id);
+    const field = document.getElementById('smartSearch');
+    field.value = '';
+    hideSrList();
+    field.focus();
+}
+
+function hideSrList() {
+    srResults  = [];
+    srFocusIdx = -1;
+    document.getElementById('srList').style.display = 'none';
+}
+
+// ── Qty shortcut ──────────────────────────────────────────────
+function onQtyKey(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        pendingQty = Math.max(1, parseInt(e.target.value) || 1);
+        document.getElementById('smartSearch').focus();
+    }
+    if (e.key === 'Escape') {
+        e.target.value = 1;
+        pendingQty = 1;
+        document.getElementById('smartSearch').focus();
+    }
+}
 
 // ── Keyboard shortcuts (Ctrl+key) ─────────────────────────────
 document.addEventListener('keydown', function(e) {
+    const starTag = document.activeElement.tagName;
+    const starInInput = starTag === 'INPUT' || starTag === 'TEXTAREA' || starTag === 'SELECT';
+    if (e.key === '*' && !starInInput) {
+        e.preventDefault();
+        const qi = document.getElementById('qtyInput');
+        qi.value = '';
+        qi.focus();
+        qi.select();
+        return;
+    }
     const mo = document.querySelector('.mo.open');
     if (e.key === 'Escape') { e.preventDefault(); closeMo(); return; }
     if (mo) return;
@@ -1211,7 +1340,7 @@ document.addEventListener('keydown', function(e) {
             '3': () => openPay('card'),
             'h': () => holdCart(),
             'r': () => openHeldModal(),
-            'b': () => bi.focus(),
+            'b': () => document.getElementById('smartSearch').focus(),
             'm': () => setPriceMode(priceMode === 'retail' ? 'wholesale' : 'retail'),
         };
         if (map[e.key.toLowerCase()]) { e.preventDefault(); map[e.key.toLowerCase()](); return; }
@@ -1222,7 +1351,7 @@ document.addEventListener('keydown', function(e) {
     // Auto-focus scanner on printable key
     const tag = e.target.tagName;
     const inInput = (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
-    if (!inInput && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) bi.focus();
+    if (!inInput && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) document.getElementById('smartSearch').focus();
 });
 
 // ── Init ──────────────────────────────────────────────────────
@@ -1230,6 +1359,7 @@ loadHeldCarts();
 renderProds();
 cartEmptyEl = document.getElementById('ce');
 renderCart();
+document.getElementById('smartSearch').focus();
 </script>
 </body>
 </html>
