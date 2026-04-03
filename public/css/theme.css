@@ -128,6 +128,16 @@
 [data-theme="dark"] .btn-ghost { color: var(--c-text); }
 [data-theme="dark"] .btn-ghost:hover { background: rgba(255,255,255,.08); }
 
+/* Navbar logout button: higher-contrast override on the dark red navbar background */
+[data-theme="dark"] .navbar .btn-outline {
+    color: #F1F5F9;
+    border-color: rgba(241,245,249,.3);
+}
+[data-theme="dark"] .navbar .btn-outline:hover {
+    background: rgba(255,255,255,.1);
+    color: #fff;
+}
+
 /* ── Alerts & Low-stock ────────────────────────────────────── */
 [data-theme="dark"] .alert-success { background: #064E3B33; border-color: var(--c-success); color: #6ee7b7; }
 [data-theme="dark"] .alert-error   { background: #450A0A33; border-color: var(--c-danger);  color: #fca5a5; }
