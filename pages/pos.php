@@ -590,6 +590,7 @@ let heldCarts   = [];     // loaded from server
 let itemDiscKey = null;   // which item is being discounted
 let itemDiscType = 'percent';
 let txnDiscType  = 'percent';
+let cartEmptyEl = null;   // cached reference to the empty-cart element
 
 // ── Clock ─────────────────────────────────────────────────────
 function updateClock(){ document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',hour12:true}); }
@@ -756,7 +757,7 @@ function renderCart() {
     const body = document.getElementById('cb2');
     const tots = document.getElementById('tots');
     const cnt  = document.getElementById('ccnt');
-    const ce   = document.getElementById('ce');
+    const ce   = cartEmptyEl;
 
     if (!cart.length) {
         body.innerHTML = ''; body.appendChild(ce); ce.style.display = 'flex';
@@ -1203,6 +1204,7 @@ document.addEventListener('keydown', function(e) {
 // ── Init ──────────────────────────────────────────────────────
 loadHeldCarts();
 renderProds();
+cartEmptyEl = document.getElementById('ce');
 renderCart();
 </script>
 </body>
