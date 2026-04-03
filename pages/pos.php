@@ -78,6 +78,13 @@ $theme           = isset($_COOKIE['pos_theme']) ? htmlspecialchars($_COOKIE['pos
 $biz_name        = htmlspecialchars($biz['business_name'] ?? 'J&J Grocery');
 $biz_address     = htmlspecialchars($biz['business_address'] ?? '');
 $biz_tin         = htmlspecialchars($biz['tin'] ?? '');
+$biz_logo_url = '';
+if (!empty($biz['business_logo'])) {
+    $logo_file = ROOT_PATH . '/public/images/' . basename($biz['business_logo']);
+    if (file_exists($logo_file)) {
+        $biz_logo_url = IMG_URL . '/' . htmlspecialchars(basename($biz['business_logo']));
+    }
+}
 $vat_registered  = (int)($biz['vat_registered'] ?? 1) === 1;
 $vat_inclusive   = (int)($biz['vat_inclusive']  ?? 1) === 1;
 $vat_rate        = (float)($biz['vat_rate'] ?? 0.12);
@@ -381,7 +388,13 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 
 <!-- ── HEADER ── -->
 <header class="ph">
-    <div class="ph-logo">🏪 <?php echo $biz_name; ?> <small>REG-01</small></div>
+    <div class="ph-logo">
+        <?php if ($biz_logo_url): ?>
+        <img src="<?php echo $biz_logo_url; ?>" alt="logo"
+             style="height:30px;width:auto;object-fit:contain;vertical-align:middle;margin-right:6px">
+        <?php endif; ?>
+        <?php echo $biz_name; ?><small>REG-01</small>
+    </div>
     <div class="ph-scan">
         <span class="si">🔍</span>
         <input type="text" id="barcodeInput" placeholder="Scan barcode or search…" autocomplete="off" autofocus>
