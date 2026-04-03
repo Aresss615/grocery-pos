@@ -1262,6 +1262,19 @@ $biz = getBusinessSettings($db);
 
     <script src="<?php echo JS_URL; ?>/main.js"></script>
     <script>
+    // ── Print helper ──────────────────────────────────────────
+    function openPrintWindow(htmlString) {
+        const blob = new Blob([htmlString], { type: 'text/html' });
+        const url  = URL.createObjectURL(blob);
+        const win  = window.open(url, '_blank', 'width=400,height=600');
+        if (win) {
+            win.addEventListener('afterprint', () => URL.revokeObjectURL(url));
+            win.focus();
+        } else {
+            URL.revokeObjectURL(url);
+        }
+    }
+
     // ── Tab switching ─────────────────────────────────────────
     function switchTab(name, btn) {
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));

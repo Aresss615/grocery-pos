@@ -391,6 +391,14 @@ body.wholesale-mode .mtb.active{color:#1565C0}
     .ph,.pp,.pos-sc,.toast,.rec-hdr,.rec-acts{display:none!important}
     .cart,.cart-tots,.cart-body{background:#fff!important;color:#111!important;width:100%!important}
 }
+.toast-skip { position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+              background:#1E293B; color:#F1F5F9; padding:12px 20px; border-radius:10px;
+              font-size:.84rem; font-weight:600; box-shadow:var(--sh-lg); z-index:9999;
+              display:flex; align-items:center; gap:14px; }
+.toast-skip button { padding:5px 14px; border-radius:6px; border:1.5px solid rgba(255,255,255,.3);
+                     background:transparent; color:#F1F5F9; cursor:pointer;
+                     font-family:var(--font); font-size:.8rem; }
+.toast-skip button:hover { background:rgba(255,255,255,.15); }
 </style>
 </head>
 <body>
@@ -620,6 +628,35 @@ const ICONS = {Grains:'🌾',Rice:'🌾',Oils:'🫙',Dairy:'🧀',Canned:'🥫',
 const icon  = n => ICONS[n] || ICONS['_'];
 const f2    = n => (+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ── Print helpers ──────────────────────────────────────────────
+function openPrintWindow(htmlString) {
+    const blob = new Blob([htmlString], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const win  = window.open(url, '_blank', 'width=400,height=600');
+    if (win) {
+        win.addEventListener('afterprint', () => URL.revokeObjectURL(url));
+        win.focus();
+    } else {
+        URL.revokeObjectURL(url);
+    }
+}
+
+function triggerReceiptPrint(receiptHtml) {
+    openPrintWindow(receiptHtml);
+    showSkipToast('Printing receipt…');
+}
+
+function showSkipToast(msg) {
+    let el = document.getElementById('skipToast');
+    if (el) el.remove();
+    el = document.createElement('div');
+    el.id = 'skipToast';
+    el.className = 'toast-skip';
+    el.innerHTML = `<span>${msg}</span><button onclick="document.getElementById('skipToast').remove()">Done</button>`;
+    document.body.appendChild(el);
+    setTimeout(() => { const t = document.getElementById('skipToast'); if (t) t.remove(); }, 5000);
+}
 
 // ── State ─────────────────────────────────────────────────────
 let cart        = [];     // [{key, pid, name, price, mode, qty, stock, discount_type, discount_value}]
@@ -1177,7 +1214,8 @@ function showRec(d) {
     const discountLine = d.discount > 0
         ? `<div class="ri"><span>Discount</span><span>-₱${f2(d.discount)}</span></div>` : '';
 
-    document.getElementById('recC').innerHTML = `
+    const receiptHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:monospace;font-size:13px;padding:16px;max-width:360px;margin:0 auto} hr{border:1px dashed #aaa} .ri{display:flex;justify-content:space-between;padding:2px 0} .rt{display:flex;justify-content:space-between;font-weight:bold;font-size:1.1em;padding:4px 0} .rs{text-align:center;margin-bottom:8px} .rf{text-align:center;font-size:.8em;margin-top:8px;color:#555}</style><script>window.onload=()=>{window.print();}<\/script></head><body>`;
+    const receiptBody = `
         <div class="rs">
             <strong>${esc(BIZ_NAME)}</strong><br>
             ${BIZ_ADDRESS ? `<small>${esc(BIZ_ADDRESS)}</small><br>` : ''}
@@ -1199,7 +1237,9 @@ function showRec(d) {
         <div class="ri"><span>Payment</span><span>${m}</span></div>
         <div class="rf">Thank you for shopping at ${esc(BIZ_NAME)}!<br>This serves as your Official Receipt.</div>`;
 
+    document.getElementById('recC').innerHTML = receiptBody;
     document.getElementById('moR').classList.add('open');
+    triggerReceiptPrint(receiptHtml + receiptBody + '</body></html>');
 }
 
 function newSale() {
