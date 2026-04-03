@@ -282,8 +282,10 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .np{padding:10px;border-radius:7px;border:1.5px solid #E2E8F0;background:#F8FAFC;color:#1A202C;font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;transition:var(--t);text-align:center}
 [data-theme="dark"] .np{background:#0F172A;border-color:#334155;color:#F1F5F9}
 .np:hover{background:#FFF5F5;border-color:var(--primary);color:var(--primary)}
+[data-theme="dark"] .np:hover{background:#2d1010}
 .np.np0{grid-column:span 2}
 .np.npd{background:#FFF5F5;color:var(--primary)}
+[data-theme="dark"] .np.npd{background:#2d1010}
 .mb-acts{display:flex;gap:8px;margin-top:14px}
 .mb-ok{flex:1;padding:12px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;transition:var(--t)}
 .mb-ok:hover{background:var(--primary-d)}
@@ -291,10 +293,12 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .mb-can{padding:12px 15px;border-radius:8px;border:1.5px solid #E2E8F0;background:none;font-family:var(--font);font-size:.82rem;font-weight:600;cursor:pointer;color:#64748B;transition:var(--t)}
 [data-theme="dark"] .mb-can{border-color:#334155;color:#94A3B8}
 .mb-can:hover{background:#F8FAFC}
+[data-theme="dark"] .mb-can:hover{background:var(--surface)}
 .mb-quick{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
-.mb-quick button{padding:7px 11px;border-radius:6px;border:1.5px solid #E2E8F0;background:#F8FAFC;font-size:.82rem;font-weight:700;cursor:pointer;transition:var(--t)}
-[data-theme="dark"] .mb-quick button{background:#0F172A;border-color:#334155;color:#F1F5F9}
-.mb-quick button:hover{border-color:var(--primary);color:var(--primary);background:#FFF5F5}
+.mb-quick button,.mb-quick-btn{padding:7px 11px;border-radius:6px;border:1.5px solid #E2E8F0;background:#F8FAFC;font-size:.82rem;font-weight:700;cursor:pointer;transition:var(--t)}
+[data-theme="dark"] .mb-quick button,[data-theme="dark"] .mb-quick-btn{background:#0F172A;border-color:#334155;color:#F1F5F9}
+.mb-quick button:hover,.mb-quick-btn:hover{border-color:var(--primary);color:var(--primary);background:#FFF5F5}
+[data-theme="dark"] .mb-quick button:hover,[data-theme="dark"] .mb-quick-btn:hover{background:#2d1010}
 /* Discount modal */
 .disc-type-btns{display:flex;gap:8px;margin-bottom:12px}
 .dtb{flex:1;padding:8px;border-radius:7px;border:2px solid #E2E8F0;background:#F8FAFC;font-family:var(--font);font-size:.83rem;font-weight:600;cursor:pointer;text-align:center;transition:var(--t)}
@@ -303,6 +307,7 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 [data-theme="dark"] .dtb.active{background:#2d1010}
 /* Held carts modal */
 .held-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+[data-theme="dark"] .held-list p{color:var(--muted)!important}
 .held-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:8px;background:#F8FAFC;cursor:pointer;transition:var(--t)}
 [data-theme="dark"] .held-item{background:#0F172A;border-color:#334155}
 .held-item:hover{border-color:var(--primary);background:#FFF5F5}
@@ -310,21 +315,27 @@ body.wholesale-mode .mtb.active{color:#1565C0}
 .held-item-info{flex:1}
 .held-item-info strong{font-size:.83rem;display:block}
 .held-item-info small{font-size:.7rem;color:#718096}
+[data-theme="dark"] .held-item-info small{color:var(--muted)}
 .held-item-total{font-size:.88rem;font-weight:700;color:var(--primary)}
 .held-item-del{background:none;border:none;color:#C62828;cursor:pointer;font-size:.9rem;padding:2px 4px}
 
 /* ── Receipt ── */
 .rec-box{background:#fff;color:#111;max-width:360px;width:95vw;border-radius:13px;overflow:hidden;box-shadow:var(--sh-lg);max-height:92vh;display:flex;flex-direction:column}
+[data-theme="dark"] .rec-box{background:var(--surface);color:var(--text)}
 .rec-hdr{background:var(--primary);color:#fff;padding:13px 18px;text-align:center;font-weight:700;font-size:.95rem}
 .rec-body{padding:14px;overflow-y:auto;flex:1;font-size:.8rem;line-height:1.6}
 .rec-body .rs{text-align:center;margin-bottom:8px}
 .rec-body hr{border:none;border-top:1px dashed #ccc;margin:6px 0}
+[data-theme="dark"] .rec-body hr{border-top-color:var(--border)}
 .rec-body .ri{display:flex;justify-content:space-between;margin:2px 0}
 .rec-body .rt{display:flex;justify-content:space-between;font-size:.95rem;font-weight:800;margin-top:5px}
 .rec-body .rf{text-align:center;margin-top:8px;font-size:.73rem;color:#666}
+[data-theme="dark"] .rec-body .rf{color:var(--muted)}
 .rec-acts{padding:10px 14px;display:flex;gap:7px;border-top:1px solid #eee}
+[data-theme="dark"] .rec-acts{border-top-color:var(--border)}
 .rec-new{flex:1;padding:11px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-family:var(--font);font-size:.88rem;font-weight:700;cursor:pointer}
 .rec-prt{padding:11px 14px;border-radius:8px;border:1.5px solid #E2E8F0;background:none;font-family:var(--font);font-size:.82rem;cursor:pointer;color:#555}
+[data-theme="dark"] .rec-prt{border-color:var(--border);color:var(--muted)}
 
 /* ── Day-lock overlay ── */
 .day-lock{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:900;display:flex;align-items:center;justify-content:center}
@@ -1016,7 +1027,7 @@ function openPay(m) {
     document.getElementById('pmNp').style.display = m === 'cash' ? 'grid' : 'none';
     const bills = [20, 50, 100, 200, 500, 1000].filter(b => b >= tot).slice(0, 4);
     document.getElementById('pmQ').innerHTML = bills.map(b =>
-        `<button onclick="document.getElementById('pmA').value='${b}';updChg()" style="padding:6px 10px;border-radius:6px;border:1.5px solid #E2E8F0;background:#F8FAFC;font-size:.8rem;font-weight:700;cursor:pointer;">₱${b}</button>`
+        `<button class="mb-quick-btn" onclick="document.getElementById('pmA').value='${b}';updChg()">₱${b}</button>`
     ).join('');
     updChg();
     document.getElementById('moP').classList.add('open');
