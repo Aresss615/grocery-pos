@@ -417,6 +417,14 @@ body.wholesale-mode .mtb.active{color:#1565C0}
             <button class="mtb active" id="btnRetail"    onclick="setPriceMode('retail',this)">Retail</button>
             <button class="mtb"        id="btnWholesale" onclick="setPriceMode('wholesale',this)">Wholesale</button>
         </div>
+        <div style="display:flex;align-items:center;gap:5px">
+            <label style="color:rgba(255,255,255,.6);font-size:.72rem;white-space:nowrap">Qty [*]</label>
+            <input type="number" id="qtyInput" min="1" max="9999" value="1"
+                   style="width:56px;padding:5px 7px;border-radius:6px;border:2px solid rgba(255,255,255,.3);
+                          background:rgba(255,255,255,.14);color:#fff;font-family:var(--font);font-size:.85rem;
+                          text-align:center;outline:none"
+                   onkeydown="onQtyKey(event)">
+        </div>
         <button class="held-badge" id="heldBadge" onclick="openHeldModal()" title="Held carts (Ctrl+R)">
             🗂️ Held <span class="hb-cnt" id="heldCount">0</span>/3
         </button>
@@ -612,6 +620,7 @@ const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 // ── State ─────────────────────────────────────────────────────
 let cart        = [];     // [{key, pid, name, price, mode, qty, stock, discount_type, discount_value}]
 let priceMode   = 'retail';
+let pendingQty  = 1;
 let curCat      = 'all';
 let payMeth     = 'cash';
 let lastSale    = null;
@@ -709,13 +718,18 @@ function addToCart(pid) {
     if (!p) return;
     const pr = getPrice(p);
     if (pr <= 0) { toast('No price for ' + priceMode + ' mode', 'warn'); return; }
+    const qty = pendingQty;
+    pendingQty = 1;
+    document.getElementById('qtyInput').value = 1;
     const key = `${pid}_${priceMode}`;
     const ex  = cart.find(i => i.key === key);
     if (ex) {
-        if (p.quantity !== null && ex.qty >= p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
-        ex.qty++;
+        const newQty = ex.qty + qty;
+        if (p.quantity !== null && newQty > p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
+        ex.qty = newQty;
     } else {
-        cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, qty: 1, stock: p.quantity, discount_type: 'none', discount_value: 0 });
+        if (p.quantity !== null && qty > p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
+        cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, qty, stock: p.quantity, discount_type: 'none', discount_value: 0 });
     }
     renderCart();
     toast(p.name + ' added', 'ok');
@@ -1269,8 +1283,30 @@ function hideSrList() {
     document.getElementById('srList').style.display = 'none';
 }
 
+// ── Qty shortcut ──────────────────────────────────────────────
+function onQtyKey(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        pendingQty = Math.max(1, parseInt(e.target.value) || 1);
+        document.getElementById('smartSearch').focus();
+    }
+    if (e.key === 'Escape') {
+        e.target.value = 1;
+        pendingQty = 1;
+        document.getElementById('smartSearch').focus();
+    }
+}
+
 // ── Keyboard shortcuts (Ctrl+key) ─────────────────────────────
 document.addEventListener('keydown', function(e) {
+    if (e.key === '*' && document.activeElement !== document.getElementById('qtyInput')) {
+        e.preventDefault();
+        const qi = document.getElementById('qtyInput');
+        qi.value = '';
+        qi.focus();
+        qi.select();
+        return;
+    }
     const mo = document.querySelector('.mo.open');
     if (e.key === 'Escape') { e.preventDefault(); closeMo(); return; }
     if (mo) return;
