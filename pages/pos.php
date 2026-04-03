@@ -630,11 +630,12 @@ const f2    = n => (+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 // ── Print helpers ──────────────────────────────────────────────
-function openPrintWindow(htmlString) {
+function openPrintWindow(htmlString, preOpenedWin) {
     const blob = new Blob([htmlString], { type: 'text/html' });
     const url  = URL.createObjectURL(blob);
-    const win  = window.open(url, '_blank', 'width=400,height=600');
+    const win  = preOpenedWin || window.open(url, '_blank', 'width=400,height=600');
     if (win) {
+        if (preOpenedWin) win.location.href = url;
         win.addEventListener('afterprint', () => URL.revokeObjectURL(url));
         win.focus();
     } else {
@@ -642,8 +643,8 @@ function openPrintWindow(htmlString) {
     }
 }
 
-function triggerReceiptPrint(receiptHtml) {
-    openPrintWindow(receiptHtml);
+function triggerReceiptPrint(receiptHtml, preOpenedWin) {
+    openPrintWindow(receiptHtml, preOpenedWin);
     showSkipToast('Printing receipt…');
 }
 
@@ -653,7 +654,7 @@ function showSkipToast(msg) {
     el = document.createElement('div');
     el.id = 'skipToast';
     el.className = 'toast-skip';
-    el.innerHTML = `<span>${msg}</span><button onclick="document.getElementById('skipToast').remove()">Done</button>`;
+    el.innerHTML = `<span>${esc(msg)}</span><button onclick="document.getElementById('skipToast').remove()">Done</button>`;
     document.body.appendChild(el);
     setTimeout(() => { const t = document.getElementById('skipToast'); if (t) t.remove(); }, 5000);
 }
@@ -1162,6 +1163,8 @@ function doPay() {
     const ok = document.getElementById('pmOk');
     ok.disabled = true; ok.textContent = 'Processing…';
 
+    const printWin = window.open('', '_blank', 'width=400,height=600');
+
     fetch(`${BASE}/api/sales.php`, {
         method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
@@ -1172,17 +1175,18 @@ function doPay() {
         if (d.success) {
             lastSale = { ...d, ten, snap: [...cart], meth: payMeth };
             closeMo();
-            showRec(d);
+            showRec(d, printWin);
         } else {
+            if (printWin) printWin.close();
             toast(d.message || 'Transaction failed', 'err');
             ok.disabled = false; ok.textContent = 'Confirm';
         }
     })
-    .catch(() => { toast('Network error. Retry.', 'err'); ok.disabled = false; ok.textContent = 'Confirm'; });
+    .catch(() => { if (printWin) printWin.close(); toast('Network error. Retry.', 'err'); ok.disabled = false; ok.textContent = 'Confirm'; });
 }
 
 // ── Receipt ───────────────────────────────────────────────────
-function showRec(d) {
+function showRec(d, printWin) {
     const items   = lastSale.snap;
     const m       = lastSale.meth.toUpperCase();
     const now     = new Date().toLocaleString('en-PH');
@@ -1239,7 +1243,7 @@ function showRec(d) {
 
     document.getElementById('recC').innerHTML = receiptBody;
     document.getElementById('moR').classList.add('open');
-    triggerReceiptPrint(receiptHtml + receiptBody + '</body></html>');
+    triggerReceiptPrint(receiptHtml + receiptBody + '</body></html>', printWin);
 }
 
 function newSale() {
