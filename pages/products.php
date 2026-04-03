@@ -312,6 +312,18 @@ $csrf = getCsrfToken();
             .modal-content { max-width:100%; }
             .tiers-table .hide-mobile { display:none; }
         }
+
+        /* Dark-mode overrides for tier pills */
+        [data-theme="dark"] .tier-pill--retail {
+            background: rgba(46,125,50,.3);
+            color: #86efac;
+            border-color: rgba(46,125,50,.45);
+        }
+        [data-theme="dark"] .tier-pill--wholesale {
+            background: rgba(21,101,192,.3);
+            color: #93c5fd;
+            border-color: rgba(21,101,192,.45);
+        }
     </style>
 </head>
 <body class="dashboard-page">
