@@ -719,8 +719,6 @@ function addToCart(pid) {
     const pr = getPrice(p);
     if (pr <= 0) { toast('No price for ' + priceMode + ' mode', 'warn'); return; }
     const qty = pendingQty;
-    pendingQty = 1;
-    document.getElementById('qtyInput').value = 1;
     const key = `${pid}_${priceMode}`;
     const ex  = cart.find(i => i.key === key);
     if (ex) {
@@ -731,6 +729,8 @@ function addToCart(pid) {
         if (p.quantity !== null && qty > p.quantity) { toast('Not enough stock (' + p.quantity + ' left)', 'err'); return; }
         cart.push({ key, pid, name: p.name, price: pr, mode: priceMode, qty, stock: p.quantity, discount_type: 'none', discount_value: 0 });
     }
+    pendingQty = 1;
+    document.getElementById('qtyInput').value = 1;
     renderCart();
     toast(p.name + ' added', 'ok');
 }
@@ -1299,7 +1299,9 @@ function onQtyKey(e) {
 
 // ── Keyboard shortcuts (Ctrl+key) ─────────────────────────────
 document.addEventListener('keydown', function(e) {
-    if (e.key === '*' && document.activeElement !== document.getElementById('qtyInput')) {
+    const starTag = document.activeElement.tagName;
+    const starInInput = starTag === 'INPUT' || starTag === 'TEXTAREA' || starTag === 'SELECT';
+    if (e.key === '*' && !starInInput) {
         e.preventDefault();
         const qi = document.getElementById('qtyInput');
         qi.value = '';
