@@ -10,6 +10,11 @@ require_once __DIR__ . '/../config/helpers.php';
 
 $current_page = basename($_SERVER['PHP_SELF']);
 $user = getCurrentUser();
+$_biz_nav  = getBusinessSettings();
+$_nav_logo = !empty($_biz_nav['business_logo'])
+    ? IMG_URL . '/' . htmlspecialchars(basename($_biz_nav['business_logo']))
+    : null;
+$_nav_name = htmlspecialchars($_biz_nav['business_name'] ?? APP_NAME);
 ?>
 <!-- FOUC-prevention: apply saved theme before CSS paints -->
 <script>
@@ -26,8 +31,14 @@ $user = getCurrentUser();
 
         <!-- Brand -->
         <div class="navbar-brand">
-            <img src="<?php echo IMG_URL; ?>/logo-nobg.png" alt="J&J" style="height:33px;margin-right:9px;">
-            <a href="<?php echo BASE_URL; ?>/pages/dashboard.php" class="brand-name">J&amp;J Grocery</a>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/pages/dashboard.php">
+                <?php if ($_nav_logo): ?>
+                    <img src="<?php echo $_nav_logo; ?>" alt="logo" style="height:36px;width:auto;object-fit:contain">
+                <?php else: ?>
+                    <span style="font-size:1.5rem">&#128722;</span>
+                <?php endif; ?>
+                <span class="fw-bold"><?php echo $_nav_name; ?></span>
+            </a>
         </div>
 
         <!-- Menu -->

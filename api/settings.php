@@ -75,6 +75,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($ok) {
+        // Handle logo upload (optional)
+        if (!empty($_FILES['business_logo']['tmp_name'])) {
+            $file    = $_FILES['business_logo'];
+            $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
+            if (!in_array($ext, $allowed, true)) {
+                echo json_encode(['success'=>false,'error'=>'Invalid image type']); exit;
+            }
+            if ($file['size'] > 2 * 1024 * 1024) {
+                echo json_encode(['success'=>false,'error'=>'Logo must be under 2MB']); exit;
+            }
+            $dest_dir  = ROOT_PATH . '/public/images/';
+            $filename  = 'logo_' . time() . '.' . $ext;
+            if (!move_uploaded_file($file['tmp_name'], $dest_dir . $filename)) {
+                echo json_encode(['success'=>false,'error'=>'Upload failed']); exit;
+            }
+            // Remove old logo
+            $old_logo = $db->selectOne("SELECT business_logo FROM business_settings WHERE id=1");
+            if (!empty($old_logo['business_logo'])) {
+                $op = $dest_dir . basename($old_logo['business_logo']);
+                if (file_exists($op)) @unlink($op);
+            }
+            $db->execute("UPDATE business_settings SET business_logo=? WHERE id=1", [$filename], "s");
+        }
+
         // Clear cached settings so next read gets fresh data
         global $__biz_settings_cache;
         $__biz_settings_cache = null;

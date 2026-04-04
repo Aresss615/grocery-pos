@@ -4,6 +4,9 @@
 -- Run AFTER migration_v4.sql
 -- ============================================================
 
+-- ── Business Settings additions ──────────────────────────────────────────
+ALTER TABLE business_settings ADD COLUMN business_logo VARCHAR(255) NULL AFTER business_name;
+
 -- ── Shift Closures ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS shift_closures (
     id              INT AUTO_INCREMENT PRIMARY KEY,

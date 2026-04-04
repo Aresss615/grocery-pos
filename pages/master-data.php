@@ -211,7 +211,7 @@ $csrf = getCsrfToken();
                 <?php if (!$biz): ?>
                 <div class="alert alert-danger">Business settings table not found. Run <code>migration_v4.sql</code> first.</div>
                 <?php else: ?>
-                <form id="settingsForm" onsubmit="saveSettings(event)">
+                <form id="settingsForm" onsubmit="saveSettings(event)" enctype="multipart/form-data">
                     <div class="settings-section">
                         <h4>Store Information</h4>
                         <div class="settings-grid">
@@ -277,6 +277,21 @@ $csrf = getCsrfToken();
                                 <label class="form-label">Currency Symbol</label>
                                 <input type="text" id="bizCurrency" class="form-input" value="<?php echo htmlspecialchars($biz['currency_symbol'] ?? '₱'); ?>" style="width:80px;font-size:1.1rem;text-align:center;">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Branding</h4>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Business Logo</label>
+                            <?php if (!empty($biz['business_logo'])): ?>
+                            <div class="mb-2">
+                                <img src="<?php echo IMG_URL . '/' . htmlspecialchars($biz['business_logo']); ?>"
+                                     alt="Current logo" style="height:48px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;padding:4px">
+                            </div>
+                            <?php endif; ?>
+                            <input type="file" id="bizLogo" name="business_logo" accept="image/png,image/jpeg,image/gif,image/svg+xml,image/webp" class="form-control">
+                            <div class="form-text">PNG/JPG/SVG/WebP, max 2 MB. Shown on receipts, exports, and the navbar.</div>
                         </div>
                     </div>
 
@@ -466,6 +481,10 @@ $csrf = getCsrfToken();
         fd.append('vat_inclusive',     document.getElementById('bizVatInc').checked ? 1 : 0);
         fd.append('receipt_prefix',   document.getElementById('bizPrefix').value);
         fd.append('currency_symbol',  document.getElementById('bizCurrency').value);
+        const logoInput = document.getElementById('bizLogo');
+        if (logoInput && logoInput.files.length > 0) {
+            fd.append('business_logo', logoInput.files[0]);
+        }
 
         fetch(SAPI, { method:'POST', body:fd })
             .then(r => r.json())

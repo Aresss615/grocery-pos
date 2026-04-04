@@ -61,6 +61,7 @@ function getBusinessSettings($db = null) {
 
     $defaults = [
         'business_name'    => 'J&J Grocery',
+        'business_logo'    => null,
         'business_address' => '',
         'tin'              => '',
         'vat_registered'   => 1,
@@ -78,7 +79,7 @@ function getBusinessSettings($db = null) {
     }
     if (!$db) return $defaults;
 
-    $row = $db->fetchOne("SELECT * FROM business_settings WHERE id = 1");
+    $row = $db->selectOne("SELECT * FROM business_settings WHERE id = 1");
     $cache = $row ?: $defaults;
     return $cache;
 }
