@@ -84,7 +84,7 @@ function getBusinessSettings($db = null) {
     }
     if (!$db) return $defaults;
 
-    $row = $db->selectOne("SELECT * FROM business_settings WHERE id = 1");
+    $row = $db->fetchOne("SELECT * FROM business_settings WHERE id = 1");
     $cache = $row ?: $defaults;
     return $cache;
 }

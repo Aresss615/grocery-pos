@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success'=>false,'error'=>'Upload failed']); exit;
             }
             // Remove old logo
-            $old_logo = $db->selectOne("SELECT business_logo FROM business_settings WHERE id=1");
+            $old_logo = $db->fetchOne("SELECT business_logo FROM business_settings WHERE id=1");
             if (!empty($old_logo['business_logo'])) {
                 $op = $dest_dir . basename($old_logo['business_logo']);
                 if (file_exists($op)) @unlink($op);
