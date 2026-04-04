@@ -930,12 +930,16 @@ function renderCart() {
             ? `Discount (${txnDiscount.value}%)`
             : 'Discount (Fixed)';
         tdEl.textContent = '-₱' + f2(t.txnDiscAmt);
-        discBtn.textContent = '✎ Edit Transaction Discount';
-        discBtn.classList.add('has-disc');
+        if (discBtn) {
+            discBtn.textContent = '✎ Edit Transaction Discount';
+            discBtn.classList.add('has-disc');
+        }
     } else {
         discRow.style.display = 'none';
-        discBtn.textContent   = '＋ Add Transaction Discount';
-        discBtn.classList.remove('has-disc');
+        if (discBtn) {
+            discBtn.textContent   = '＋ Add Transaction Discount';
+            discBtn.classList.remove('has-disc');
+        }
     }
 
     if (VAT_REGISTERED) {
