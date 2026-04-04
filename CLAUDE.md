@@ -45,7 +45,7 @@ Pages are self-contained: each PHP file includes its own SQL queries, HTML, CSS,
 ### Key Files
 
 - `config/constants.php` — DB credentials, `BASE_URL`, `VAT_RATE`, permission key constants, CSS/JS URL constants
-- `config/database.php` — `Database` class wrapping `mysqli` with `select()`, `selectOne()`, `execute()`, `beginTransaction()`, `commit()`, `rollback()`
+- `config/database.php` — `Database` class wrapping `mysqli` with `select()`, `fetchOne()`, `fetchAll()`, `execute()`, `beginTransaction()`, `commit()`, `rollback()`
 - `config/helpers.php` — auth helpers (`hasPermission()`, `hasAccess()`, `hasRole()`), VAT calculation, receipt number generation, activity logging
 - `templates/navbar.php` — permission-based navigation (uses `hasAccess()`)
 
@@ -54,7 +54,7 @@ Pages are self-contained: each PHP file includes its own SQL queries, HTML, CSS,
 ```php
 $db = new Database();
 $rows = $db->select("SELECT * FROM products WHERE category_id = ?", [$catId], "i");
-$one = $db->selectOne("SELECT * FROM users WHERE id = ?", [$id], "i");
+$one = $db->fetchOne("SELECT * FROM users WHERE id = ?", [$id]);
 $db->execute("INSERT INTO products (name, price) VALUES (?, ?)", [$name, $price], "sd");
 ```
 
