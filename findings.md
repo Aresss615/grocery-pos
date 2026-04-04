@@ -1,5 +1,6 @@
 #delete this after read
 
+
 #General 
 -There should be an end shifst for cashier, should confirm if cash on hand is remitted. 
 -receipts needs to be printed after every transaction. No need for confirmation to print just print it after cash has been confirmed. No need to ask to print. Maybe better if ask not to print instead. same as z read, x read, remittance, and everything that needs a receipt in the manager section. all should be in accordance with the law.
