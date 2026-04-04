@@ -83,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!in_array($ext, $allowed, true)) {
                 echo json_encode(['success'=>false,'error'=>'Invalid image type']); exit;
             }
+            $finfo    = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($file['tmp_name']);
+            $allowedMimes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
+            if (!in_array($mimeType, $allowedMimes, true)) {
+                echo json_encode(['success'=>false,'error'=>'Invalid image type']); exit;
+            }
             if ($file['size'] > 2 * 1024 * 1024) {
                 echo json_encode(['success'=>false,'error'=>'Logo must be under 2MB']); exit;
             }
@@ -99,10 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $db->execute("UPDATE business_settings SET business_logo=? WHERE id=1", [$filename], "s");
         }
-
-        // Clear cached settings so next read gets fresh data
-        global $__biz_settings_cache;
-        $__biz_settings_cache = null;
 
         // Build change summary for audit
         $changes = [];

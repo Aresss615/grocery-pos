@@ -286,7 +286,7 @@ $csrf = getCsrfToken();
                             <label class="form-label fw-semibold">Business Logo</label>
                             <?php if (!empty($biz['business_logo'])): ?>
                             <div class="mb-2">
-                                <img src="<?php echo IMG_URL . '/' . htmlspecialchars($biz['business_logo']); ?>"
+                                <img src="<?php echo IMG_URL . '/' . htmlspecialchars(basename($biz['business_logo'])); ?>"
                                      alt="Current logo" style="height:48px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;padding:4px">
                             </div>
                             <?php endif; ?>
