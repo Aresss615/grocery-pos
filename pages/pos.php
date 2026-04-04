@@ -637,6 +637,7 @@ const VAT_INCLUSIVE  = <?php echo $vat_inclusive  ? 'true' : 'false'; ?>;
 const VAT_REGISTERED = <?php echo $vat_registered ? 'true' : 'false'; ?>;
 const BIZ_NAME    = '<?php echo addslashes($biz_name); ?>';
 const BIZ_ADDRESS = '<?php echo addslashes($biz_address); ?>';
+const FEAT_DISCOUNTS = <?php echo $feat_discounts; ?>;
 const BIZ_TIN     = '<?php echo addslashes($biz_tin); ?>';
 
 const ICONS = {Grains:'🌾',Rice:'🌾',Oils:'🫙',Dairy:'🧀',Canned:'🥫',Meat:'🥩',Fruits:'🍎',Vegetables:'🥦',Cleaning:'🧹',Beverages:'🥤','_':'📦'};
@@ -909,7 +910,7 @@ function renderCart() {
             </div>
             <div class="ci-acts">
                 <div class="ci-sb">₱${f2(lineTotal)}</div>
-                <button class="ci-dsc" onclick="openItemDiscount('${i.key}')" title="Discount">%</button>
+                ${FEAT_DISCOUNTS ? `<button class="ci-dsc" onclick="openItemDiscount('${i.key}')" title="Discount">%</button>` : ''}
                 <button class="ci-del" onclick="delItem('${i.key}')">✕</button>
             </div>
         </div>`;
