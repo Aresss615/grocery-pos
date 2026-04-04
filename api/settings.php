@@ -75,6 +75,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($ok) {
+        // Save feature toggles
+        $db->execute(
+            "UPDATE business_settings SET
+                feature_loyalty=?, feature_gcash=?, feature_card=?,
+                feature_discounts=?, feature_held_carts=?
+             WHERE id=1",
+            [
+                isset($_POST['feature_loyalty'])    ? (int)$_POST['feature_loyalty']    : 0,
+                isset($_POST['feature_gcash'])      ? (int)$_POST['feature_gcash']      : 0,
+                isset($_POST['feature_card'])       ? (int)$_POST['feature_card']       : 0,
+                isset($_POST['feature_discounts'])  ? (int)$_POST['feature_discounts']  : 0,
+                isset($_POST['feature_held_carts']) ? (int)$_POST['feature_held_carts'] : 0,
+            ],
+            "iiiii"
+        );
+
         // Handle logo upload (optional)
         if (!empty($_FILES['business_logo']['tmp_name'])) {
             $file    = $_FILES['business_logo'];

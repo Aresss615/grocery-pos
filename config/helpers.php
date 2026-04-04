@@ -71,6 +71,11 @@ function getBusinessSettings($db = null) {
         'next_receipt_number' => 1,
         'currency_symbol'  => '₱',
         'day_closed'       => null,
+        'feature_loyalty'    => 0,
+        'feature_gcash'      => 1,
+        'feature_card'       => 1,
+        'feature_discounts'  => 1,
+        'feature_held_carts' => 1,
     ];
 
     if (!$db) {

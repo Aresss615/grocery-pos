@@ -88,6 +88,11 @@ if (!empty($biz['business_logo'])) {
 $vat_registered  = (int)($biz['vat_registered'] ?? 1) === 1;
 $vat_inclusive   = (int)($biz['vat_inclusive']  ?? 1) === 1;
 $vat_rate        = (float)($biz['vat_rate'] ?? 0.12);
+$feat_gcash      = (int)($biz['feature_gcash']      ?? 1);
+$feat_card       = (int)($biz['feature_card']        ?? 1);
+$feat_discounts  = (int)($biz['feature_discounts']   ?? 1);
+$feat_held_carts = (int)($biz['feature_held_carts']  ?? 1);
+$feat_loyalty    = (int)($biz['feature_loyalty']     ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="fil" data-theme="<?php echo $theme; ?>">
@@ -436,9 +441,11 @@ body.wholesale-mode .mtb.active{color:#1565C0}
                           text-align:center;outline:none"
                    onkeydown="onQtyKey(event)">
         </div>
+        <?php if ($feat_held_carts): ?>
         <button class="held-badge" id="heldBadge" onclick="openHeldModal()" title="Held carts (Ctrl+R)">
             🗂️ Held <span class="hb-cnt" id="heldCount">0</span>/3
         </button>
+        <?php endif; ?>
         <div class="ph-cashier">👤 <strong><?php echo htmlspecialchars($cashier_name); ?></strong></div>
         <div class="ph-clock" id="clk">--:--</div>
         <button class="ph-theme" onclick="openEndShift()"
@@ -491,12 +498,18 @@ body.wholesale-mode .mtb.active{color:#1565C0}
             <div class="ct-r"><span id="vatLabel"><?php echo $vat_inclusive ? 'VAT (incl.)' : 'VAT 12%'; ?></span><span id="tv">₱0.00</span></div>
             <?php endif; ?>
             <div class="ct-r total"><span class="ctl">TOTAL</span><span id="tt">₱0.00</span></div>
+            <?php if ($feat_discounts): ?>
             <button class="ct-disc-btn" id="txnDiscBtn" onclick="openTxnDiscount()">＋ Add Transaction Discount</button>
+            <?php endif; ?>
         </div>
         <div class="cart-pay">
             <button class="pay cash"  id="bC" onclick="openPay('cash')"  disabled><span class="pi">💵</span>CASH<br><small>Ctrl+1</small></button>
+            <?php if ($feat_gcash): ?>
             <button class="pay gcash" id="bG" onclick="openPay('gcash')" disabled><span class="pi">📱</span>GCASH<br><small>Ctrl+2</small></button>
+            <?php endif; ?>
+            <?php if ($feat_card): ?>
             <button class="pay card"  id="bK" onclick="openPay('card')"  disabled><span class="pi">💳</span>CARD<br><small>Ctrl+3</small></button>
+            <?php endif; ?>
         </div>
     </div>
 </div>

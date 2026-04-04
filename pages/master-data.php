@@ -295,6 +295,34 @@ $csrf = getCsrfToken();
                         </div>
                     </div>
 
+                    <hr>
+                    <h6 class="fw-bold mb-3">Features</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="feature_loyalty" id="ftLoyalty"
+                               value="1" <?php echo $biz['feature_loyalty'] ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="ftLoyalty">Loyalty Card</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="feature_gcash" id="ftGcash"
+                               value="1" <?php echo $biz['feature_gcash'] ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="ftGcash">GCash Payments</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="feature_card" id="ftCard"
+                               value="1" <?php echo $biz['feature_card'] ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="ftCard">Card Payments</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="feature_discounts" id="ftDisc"
+                               value="1" <?php echo $biz['feature_discounts'] ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="ftDisc">Discounts (item &amp; transaction)</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="feature_held_carts" id="ftHeld"
+                               value="1" <?php echo $biz['feature_held_carts'] ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="ftHeld">Held Carts</label>
+                    </div>
+
                     <div id="settingsMsg" style="display:none;margin-bottom:var(--space-4);"></div>
 
                     <button type="submit" class="btn btn-primary" id="settingsSaveBtn">Save Settings</button>
@@ -485,6 +513,11 @@ $csrf = getCsrfToken();
         if (logoInput && logoInput.files.length > 0) {
             fd.append('business_logo', logoInput.files[0]);
         }
+        fd.append('feature_loyalty',    document.getElementById('ftLoyalty').checked ? 1 : 0);
+        fd.append('feature_gcash',      document.getElementById('ftGcash').checked   ? 1 : 0);
+        fd.append('feature_card',       document.getElementById('ftCard').checked    ? 1 : 0);
+        fd.append('feature_discounts',  document.getElementById('ftDisc').checked    ? 1 : 0);
+        fd.append('feature_held_carts', document.getElementById('ftHeld').checked    ? 1 : 0);
 
         fetch(SAPI, { method:'POST', body:fd })
             .then(r => r.json())

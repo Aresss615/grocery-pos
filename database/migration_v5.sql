@@ -7,6 +7,13 @@
 -- ── Business Settings additions ──────────────────────────────────────────
 ALTER TABLE business_settings ADD COLUMN business_logo VARCHAR(255) NULL AFTER business_name;
 
+-- ── Feature Toggles ─────────────────────────────────────────
+ALTER TABLE business_settings ADD COLUMN feature_loyalty    TINYINT(1) NOT NULL DEFAULT 0 AFTER business_logo;
+ALTER TABLE business_settings ADD COLUMN feature_gcash      TINYINT(1) NOT NULL DEFAULT 1 AFTER feature_loyalty;
+ALTER TABLE business_settings ADD COLUMN feature_card       TINYINT(1) NOT NULL DEFAULT 1 AFTER feature_gcash;
+ALTER TABLE business_settings ADD COLUMN feature_discounts  TINYINT(1) NOT NULL DEFAULT 1 AFTER feature_card;
+ALTER TABLE business_settings ADD COLUMN feature_held_carts TINYINT(1) NOT NULL DEFAULT 1 AFTER feature_discounts;
+
 -- ── Shift Closures ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS shift_closures (
     id              INT AUTO_INCREMENT PRIMARY KEY,
