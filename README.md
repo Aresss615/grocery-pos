@@ -1,748 +1,384 @@
-# J&J Grocery POS System 🏪
+# J&J Grocery POS
 
-A modern, production-ready Point of Sale (POS) system built with PHP and MySQL, fully localized for Philippine small grocery stores.
+![PHP](https://img.shields.io/badge/PHP-8.x-777BB4?style=flat&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=flat&logo=mysql&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat)
+![Locale](https://img.shields.io/badge/Locale-Philippines%20%7C%20PHP%20%E2%82%B1-red?style=flat)
 
-## Features ✨
+A full-featured, vanilla PHP point-of-sale system built for a Philippine grocery store. No framework — pure PHP, MySQL, HTML, CSS, and JavaScript. Philippine-specific: 12% VAT, GCash payments, peso (₱) currency, `Asia/Manila` timezone.
 
-### Core Functionality
-- ✅ **User Authentication** - Secure login with bcrypt password hashing
-- ✅ **Role-Based Access Control** - Admin, Manager, and Cashier roles
-- ✅ **Product Management** - Complete CRUD with barcode generation and stock tracking
-- ✅ **POS Checkout** - Fast, intuitive shopping cart with real-time calculations
-- ✅ **User Management** - Add, edit, and manage staff members
-- ✅ **Sales Reporting** - Track transactions with detailed receipt generation
-- ✅ **Inventory Tracking** - Automatic stock decrement on sales
+---
 
-### Philippine Localization 🇵🇭
-- **Currency**: Philippine Peso (₱) - All prices and transactions
-- **Taxes**: 12% VAT automatically calculated on all sales
-- **Payment Methods**: Cash, GCash (mobile wallet), and Credit/Debit Cards
-- **Date Format**: ISO 8601 (Y-m-d) with display format (d/m/yyyy)
-- **Timezone**: Asia/Manila
-- **Sample Data**: Filipino grocery items and names
+## Description
 
-### Design & UX
-- Modern, clean interface inspired by Apple design principles
-- Fully responsive (mobile, tablet, desktop)
-- Fast performance with vanilla JavaScript (no heavy frameworks)
-- Smooth animations and transitions
-- Intuitive navigation and modal dialogs
+J&J Grocery POS is a complete retail point-of-sale solution designed for small to mid-sized grocery stores in the Philippines. It handles the full sales workflow — from product catalog management and barcode-based checkout to refunds, inventory tracking, sales reporting, and multi-role staff access control.
 
-## Installation 🚀
+Built as a no-framework PHP system for easy deployment on any PHP + MySQL server — no Composer, no npm, no build step.
 
-### Requirements
-- PHP 8.0 or higher
-- MySQL 8.0 or higher
-- Apache/Nginx with mod_rewrite enabled
-- Modern web browser
+---
 
-### Step 1: Download & Setup
+## Features
+
+### POS Terminal
+- Barcode scan or product name search for fast checkout
+- Cart with real-time quantity adjustment (+/−)
+- Cash, GCash, and Credit/Debit Card payment methods
+- Automatic change calculation for cash payments
+- 12% VAT (configurable: inclusive or exclusive)
+- Printable receipts with auto-generated receipt numbers
+- Hold/resume cart support
+
+### Inventory & Products
+- Product catalog with categories, barcodes, and price tiers (retail/wholesale)
+- Real-time stock level tracking — auto-decrements on sale
+- Soft delete (inactive flag) — no permanent product removal
+- Barcode auto-generation if none provided
+
+### Sales & Reporting
+- Daily sales dashboard (total revenue, transaction count)
+- Sales history with full transaction detail
+- Refund management with optimistic locking (prevents double-refund)
+- Void transactions (never deleted — full audit trail)
+- Sales export and printable reports
+- Z-Read / day-close locking
+
+### Manager Portal
+- Manager-specific views and controls
+- Double-entry accounting journal (auto-generated on sale, void, refund)
+- Business analytics and CLV tracking
+
+### User & Role Management
+- Four roles: **Admin**, **Manager**, **Cashier**, **Inventory Checker**
+- Permission-based access control (not just role-level)
+- Per-permission: `dashboard`, `pos`, `products`, `inventory`, `master_data`, `users`, `manager_portal`, `reports`, `settings`, `audit_trail`
+- Audit trail with severity levels (`info`, `warning`, `critical`)
+
+### Security
+- CSRF token validation on all POST endpoints
+- Session-based auth with 8-hour timeout
+- Password minimum length enforcement
+- Activity logging with old/new value tracking
+
+---
+
+## Tech Stack
+
+| Technology | Role |
+|---|---|
+| PHP 8.x | Backend / server-side logic |
+| MySQL 8.x | Relational database |
+| HTML5 / CSS3 | Frontend structure and styling |
+| Vanilla JavaScript (ES6) | AJAX, cart logic, UI interactions |
+| `mysqli` (PHP extension) | Database driver |
+
+No frameworks. No Composer. No npm. No build tools.
+
+---
+
+## Installation
+
+### Prerequisites
+
+- PHP 8.0+ (`brew install php` on macOS)
+- MySQL 8.0+ (`brew install mysql` on macOS)
+- Git
+
+### macOS (Homebrew) — Recommended
 
 ```bash
-# Clone or download the project
+# 1. Install PHP and MySQL if not already installed
+brew install php mysql
+
+# 2. Start MySQL
+brew services start mysql
+
+# 3. Clone the repository
+git clone https://github.com/johnchrisley/grocery-pos.git
 cd grocery-pos
 
-# Create a database
-mysql -u root -p
-CREATE DATABASE grocery_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-EXIT;
+# 4. Create the database
+mysql -u root -p -e "CREATE DATABASE grocery_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# Import the schema
+# 5. Import the schema and all migrations (order matters)
 mysql -u root -p grocery_pos < database/database.sql
+mysql -u root -p grocery_pos < database/migration_v2.sql
+mysql -u root -p grocery_pos < database/migration_v3.sql
+mysql -u root -p grocery_pos < database/migration_v4.sql
+
+# 6. Configure database credentials
+#    Edit config/constants.php — update DB_HOST, DB_USER, DB_PASS if needed
+
+# 7. Start the PHP dev server
+php -S localhost:8000
+
+# 8. Open in browser
+open http://localhost:8000
 ```
 
-### Step 2: Configure Database
+### Linux (Ubuntu/Debian)
 
-Edit `config/constants.php` and update database credentials:
+```bash
+sudo apt update
+sudo apt install php8.2 php8.2-mysqli mysql-server git
+
+sudo systemctl start mysql
+sudo mysql -e "CREATE DATABASE grocery_pos CHARACTER SET utf8mb4;"
+sudo mysql -e "CREATE USER 'posuser'@'localhost' IDENTIFIED BY 'yourpassword';"
+sudo mysql -e "GRANT ALL ON grocery_pos.* TO 'posuser'@'localhost';"
+
+git clone https://github.com/johnchrisley/grocery-pos.git
+cd grocery-pos
+
+mysql -u posuser -p grocery_pos < database/database.sql
+mysql -u posuser -p grocery_pos < database/migration_v2.sql
+mysql -u posuser -p grocery_pos < database/migration_v3.sql
+mysql -u posuser -p grocery_pos < database/migration_v4.sql
+
+# Update config/constants.php with your credentials
+php -S localhost:8000
+```
+
+---
+
+## Configuration
+
+Edit `config/constants.php`:
 
 ```php
-define('DB_HOST', 'localhost');      // Your database host
-define('DB_USER', 'root');           // Your database user
-define('DB_PASSWORD', '');           // Your database password
-define('DB_NAME', 'grocery_pos');    // Database name
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');          // Your MySQL password
+define('DB_NAME', 'grocery_pos');
+define('DB_PORT', 3306);
 ```
 
-### Step 3: Set Up Web Server
+Key business settings (also configurable via the Settings page in-app):
 
-**For Apache:**
-```
-DocumentRoot should point to the grocery-pos folder
-Enable mod_rewrite for clean URLs
-```
+| Constant | Default | Description |
+|---|---|---|
+| `VAT_RATE` | `0.12` | 12% Philippine VAT (fallback) |
+| `VAT_INCLUSIVE` | `true` | Prices include VAT |
+| `APP_TIMEZONE` | `Asia/Manila` | Philippine timezone |
+| `CURRENCY_SYMBOL` | `₱` | Philippine Peso |
+| `SESSION_TIMEOUT` | `480` | 8 hours (in minutes) |
 
-**For Nginx:**
-```nginx
-location / {
-    try_files $uri $uri/ /index.php?$query_string;
-}
-```
+---
 
-### Step 4: Start Using
+## Default Credentials
 
-1. Open your browser to `http://localhost/grocery-pos`
-2. Login with default credentials:
-   - **Admin**: `admin` / `admin123`
-   - **Cashier**: `cashier` / `cashier123`
-3. Change passwords immediately in your profile
+> **Change these immediately after first login.**
 
-## Folder Structure 📁
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin` | `admin123` |
+| Cashier | `cashier` | `cashier123` |
+
+---
+
+## Usage
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Alt + S` | Save (in modals) |
+| `Alt + C` | Cancel / close modal |
+| `Esc` | Close modal |
+| `Enter` | Submit search (in POS) |
+
+### Processing a Sale (Cashier)
+1. Go to **Sales / POS**
+2. Click product buttons or type name/barcode in search → press `Enter`
+3. Adjust quantities with `+`/`−`
+4. Select payment method (Cash / GCash / Card)
+5. Enter amount received (cash) → change is calculated automatically
+6. Click **Complete Sale**
+7. Print receipt or start new sale
+
+### Adding Products (Admin)
+1. Go to **Products** → **+ Add Product**
+2. Enter name, price (₱), quantity, category
+3. Leave barcode blank for auto-generation
+4. Click **Add Product**
+
+### End of Day (Admin/Manager)
+1. Check **Dashboard** for daily revenue and transaction count
+2. Run **Z-Read** to close the day (locks further POS sales for that date)
+3. Export or print the daily sales report from **Reports**
+
+---
+
+## Screenshots
+
+### Dashboard
+![Dashboard](./screenshots/dashboard.png)
+
+### POS Terminal
+![POS Terminal](./screenshots/pos.png)
+
+### Product Catalog
+![Products](./screenshots/products.png)
+
+### Inventory
+![Inventory](./screenshots/inventory.png)
+
+### Sales History
+![Sales](./screenshots/sales.png)
+
+### Sales Report
+![Reports](./screenshots/reports.png)
+
+### Manager Portal
+![Manager Portal](./screenshots/manager.png)
+
+### User Management
+![Users](./screenshots/users.png)
+
+### Receipt Preview
+![Receipt](./screenshots/receipt.png)
+
+> **Note:** Create a `screenshots/` folder and add images to populate the above.
+
+---
+
+## Folder Structure
 
 ```
 grocery-pos/
-├── config/                    # Configuration & helpers
-│   ├── constants.php         # All configuration settings
-│   ├── database.php          # Database connection class
-│   └── helpers.php           # Utility functions (25+)
+├── index.php                   # Login page / entry point
+├── reset-password.php          # Password reset page
+├── troubleshoot.php            # DB connection diagnostic
+├── QUICK_START.txt             # Quick setup guide
 │
-├── auth/                     # Authentication handlers
-│   ├── login.php            # Login form processor
-│   └── logout.php           # Logout handler
+├── config/
+│   ├── constants.php           # DB credentials, app config, permission keys
+│   ├── database.php            # Database class (mysqli wrapper)
+│   ├── db.php                  # DB connection bootstrap
+│   └── helpers.php             # Auth helpers, VAT calc, receipt number gen, logging
 │
-├── pages/                    # Main application pages
-│   ├── dashboard.php        # Main dashboard & statistics
-│   ├── products.php         # Product inventory management
-│   ├── users.php            # Staff user management
-│   └── sales.php            # POS checkout system
+├── auth/
+│   ├── login.php               # Session creation
+│   └── logout.php              # Session destruction
 │
-├── templates/               # Reusable HTML components
-│   ├── header.php          # HTML head section
-│   ├── footer.php          # Script includes
-│   └── navbar.php          # Navigation bar
+├── pages/
+│   ├── dashboard.php           # Home dashboard (KPIs, quick actions)
+│   ├── pos.php                 # POS terminal / checkout
+│   ├── products.php            # Product catalog management
+│   ├── inventory.php           # Stock levels and adjustments
+│   ├── sales.php               # Sales history
+│   ├── sales-report.php        # Detailed sales report
+│   ├── sales-export.php        # CSV/print export
+│   ├── reports.php             # Analytics and reports
+│   ├── manager.php             # Manager portal
+│   ├── master-data.php         # Categories and lookup data
+│   └── users.php               # User and role management
 │
-├── public/                  # Assets (CSS, JS, images)
-│   ├── css/
-│   │   └── main.css        # Complete stylesheet
-│   ├── js/
-│   │   └── main.js         # Core JavaScript
-│   └── images/
-│       └── (logos & assets)
-│
-├── database/               # Database schema
-│   └── database.sql        # MySQL schema & sample data
-│
-├── api/                    # AJAX endpoints
-│   ├── get-product.php    # Fetch product by ID
-│   └── get-user.php       # Fetch user by ID
-│
-├── index.php              # Login page entry point
-└── README.md              # This file
-```
-
-## Usage Guide 📖
-
-### For Admin Users
-
-**Dashboard** - Overview of key metrics:
-- Total products in inventory
-- Sales count from today
-- Revenue from today
-- Total users
-
-**Products** (`/pages/products.php`)
-- Add new products with name, barcode, price, and stock
-- Auto-generates barcode if left empty
-- Edit existing products (barcode becomes locked after creation)
-- Search products by name or barcode
-- Delete (soft delete) products
-- Track inventory quantities
-
-**Users** (`/pages/users.php`)
-- Add new staff members with roles
-- Edit user details and roles
-- Change user passwords
-- Remove inactive users
-- Manage admin, manager, and cashier accounts
-
-**Sales** (`/pages/sales.php`)
-- View sales history and reports
-- Track daily/weekly/monthly revenue
-- Export reports as CSV
-
-### For Cashier Users
-
-**Dashboard** - Quick access buttons:
-- Start new sale/checkout
-- View inventory (read-only)
-- Logout
-
-**POS Checkout** (`/pages/sales.php`)
-- Search products by name or barcode
-- Click/tap products to add to cart
-- Adjust quantities with +/- buttons
-- Real-time total calculation with automatic VAT (12%)
-- Select payment method: Cash, GCash, Card
-- Calculate change if paying with cash
-- Generate and print receipts
-- Stock automatically decrements on checkout
-
-## Database Schema 📊
-
-### Users Table
-```sql
-- id (Primary Key)
-- name (Staff member name)
-- username (Login username, unique)
-- password (Bcrypt hashed)
-- role (admin, manager, cashier)
-- active (Boolean, soft delete flag)
-- created_at, updated_at
-```
-
-### Products Table
-```sql
-- id (Primary Key)
-- name (Product name)
-- barcode (Unique identifier)
-- description
-- price (DECIMAL 10,2) - in ₱
-- quantity (Current stock)
-- category (Product category)
-- active (Boolean, soft delete flag)
-- created_at, updated_at
-```
-
-### Sales Table
-```sql
-- id (Primary Key)
-- cashier_id (Foreign Key to users)
-- subtotal (DECIMAL 10,2) - before tax
-- tax_amount (DECIMAL 10,2) - 12% VAT
-- total_amount (DECIMAL 10,2) - after tax
-- payment_method (cash, gcash, card)
-- amount_paid (DECIMAL 10,2)
-- change_amount (DECIMAL 10,2)
-- created_at
-```
-
-### Sale Items Table
-```sql
-- id (Primary Key)
-- sale_id (Foreign Key to sales)
-- product_id (Foreign Key to products)
-- quantity (Items sold)
-- unit_price (Price at time of sale)
-- subtotal (quantity × unit_price)
-```
-
-## Key Functions 🔧
-
-### Currency Formatting (config/helpers.php)
-```php
-formatCurrency($amount);  // Returns "₱1,234.56"
-```
-
-### VAT Calculation
-```php
-calculateVAT($subtotal);  // Returns subtotal × 0.12
-calculateTotal($subtotal); // Returns subtotal + VAT
-```
-
-### Authentication
-```php
-isLoggedIn();              // Check if user logged in
-hasRole('admin');          // Check user role
-getCurrentUser();          // Get current user data
-setUserSession($user);     // Set user session after login
-```
-
-### Date Formatting
-```php
-formatDate($date);         // Returns "d/m/Y" format
-formatDateTime($datetime); // Returns "d/m/Y H:i" format
-```
-
-### Utility Functions
-```php
-sanitize($input);          // Remove XSS and trim whitespace
-validateEmail($email);     // Validate email format
-generateBarcode();         // Create unique barcode
-redirect($url);            // Redirect with headers
-```
-
-## Security Features 🔒
-
-- **Password Hashing**: Uses PHP's `password_hash()` with BCRYPT algorithm
-- **SQL Injection Prevention**: Prepared statements on all database queries
-- **XSS Protection**: `htmlspecialchars()` on all user input display
-- **Session Management**: Secure session handling with role checks
-- **Input Validation**: Server-side validation on all forms
-- **CSRF Protection**: Can be added via additional tokens if needed
-
-## Configuration 🔧
-
-All configuration is centralized in `config/constants.php`:
-
-```php
-// Database
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'grocery_pos');
-
-// Philippine Settings
-define('CURRENCY_SYMBOL', '₱');
-define('VAT_RATE', 0.12);        // 12% VAT
-define('APP_TIMEZONE', 'Asia/Manila');
-
-// Colors (J&J Grocery branding)
-define('COLOR_PRIMARY', '#E53935');    // Red
-define('COLOR_SECONDARY', '#1E3A8A');  // Blue
-define('COLOR_ACCENT', '#FFFAF0');     // Cream
-
-// Payment Methods
-$PAYMENT_METHODS = ['cash', 'gcash', 'card'];
-
-// Other
-define('APP_NAME', 'J&J Grocery POS');
-define('APP_VERSION', '1.0.0');
-```
-
-## Troubleshooting 🔧
-
-### White Screen / No Content
-- Check PHP error logs: `php_error_log` or `error.log`
-- Verify database connection in `config/constants.php`
-- Ensure database.sql was imported correctly
-
-### Login Not Working
-- Verify database users table has default admin user
-- Check password is hashed with bcrypt
-- Clear browser cookies/cache
-
-### Products Not Showing in POS
-- Verify products table has entries with `active = 1`
-- Check database connection
-- Ensure sufficient stock quantity
-
-### Slow Performance
-- Optimize product search with database indexes
-- Clear browser cache
-- Check database query performance
-
-## Development Notes 👨‍💻
-
-### Adding New Pages
-
-1. Create `pages/mypage.php`
-2. Include at top:
-   ```php
-   session_start();
-   require_once __DIR__ . '/../config/constants.php';
-   require_once __DIR__ . '/../config/database.php';
-   require_once __DIR__ . '/../config/helpers.php';
-   ```
-3. Include navbar in HTML:
-   ```php
-   <?php include __DIR__ . '/../templates/navbar.php'; ?>
-   ```
-4. Use CSS classes from `public/css/main.css`
-
-### Database Transactions
-
-For multi-step operations, implement transactions:
-```php
-$db->execute("START TRANSACTION");
-try {
-    // Multiple operations
-    $db->execute(...);
-    $db->execute(...);
-    $db->execute("COMMIT");
-} catch (Exception $e) {
-    $db->execute("ROLLBACK");
-}
-```
-
-### Adding New Helpers
-
-Add functions to `config/helpers.php`:
-```php
-function myHelper() {
-    // Implementation
-}
-```
-
-## File Paths & Includes
-
-All includes use relative paths with `__DIR__`:
-```php
-require_once __DIR__ . '/../config/constants.php';
-require_once __DIR__ . '/../config/database.php';
-```
-
-All URLs use BASE_URL constant:
-```php
-<a href="<?php echo BASE_URL; ?>/pages/dashboard.php">Dashboard</a>
-```
-
-## Future Enhancements 🚀
-
-- [ ] More detailed reporting (PDF export)
-- [ ] Supplier management module
-- [ ] Advanced inventory alerts
-- [ ] Multi-branch support
-- [ ] Customer loyalty program
-- [ ] API for mobile app integration
-
-## Support & Maintenance 💬
-
-For issues or questions:
-1. Check the Troubleshooting section
-2. Review code comments in relevant files
-3. Check database logs for errors
-4. Verify all configuration in `config/constants.php`
-
-## License 📜
-
-This project is created for J&J Grocery Store. All rights reserved.
-
----
-
-**Project Version**: 1.0  
-**PHP Version Required**: 8.0+  
-**MySQL Version Required**: 8.0+
-│   └── auth.php                # Authentication & session class
-├── views/
-│   ├── login.php               # Login page
-│   ├── dashboard.php           # Main dashboard
-│   ├── pos.php                 # POS checkout (placeholder)
-│   ├── inventory.php           # Inventory management (placeholder)
-│   ├── sales.php               # Sales reports (placeholder)
-│   ├── users.php               # Users management (placeholder)
-│   └── 404.php                 # Error page
 ├── api/
-│   ├── login.php               # Login API endpoint
-│   └── logout.php              # Logout API endpoint
-├── assets/
-│   ├── css/
-│   │   └── style.css           # Complete styling (responsive)
-│   └── js/
-│       └── script.js           # Utility functions & initialization
-├── sql/
-│   └── schema.sql              # Database schema & sample data
-└── SETUP.md                    # Setup instructions
-
+│   ├── login.php               # Auth API
+│   ├── logout.php              # Logout API
+│   ├── get-product.php         # Product lookup (barcode/name)
+│   ├── search-product.php      # Product search
+│   ├── inventory.php           # Inventory API
+│   ├── sales.php               # Sales API (create, void, refund)
+│   ├── sales-analytics.php     # Analytics data
+│   ├── held-carts.php          # Hold/resume cart
+│   ├── refunds.php             # Refund processing
+│   ├── roles.php               # Role/permission management
+│   ├── master-data.php         # Categories API
+│   ├── get-user.php            # User lookup
+│   └── settings.php            # Business settings API
+│
+├── templates/
+│   ├── header.php              # HTML head + auth check
+│   ├── navbar.php              # Permission-based navigation
+│   └── footer.php              # Closing HTML
+│
+├── database/
+│   ├── database.sql            # Initial schema (v1)
+│   ├── migration_v2.sql        # Schema additions (v2)
+│   ├── migration_v3.sql        # Schema additions (v3)
+│   └── migration_v4.sql        # Permission system + business settings (v4)
+│
+└── public/
+    ├── css/
+    │   ├── main.css            # Primary stylesheet
+    │   └── theme.css           # Color theme (J&J branding)
+    ├── js/
+    │   └── main.js             # Frontend JavaScript
+    └── images/
+        ├── logo.jpg
+        └── logo-nobg.png
 ```
-
-## 🚀 Quick Start
-
-### Step 1: Clone & Setup
-
-```bash
-# Navigate to your web root (Laragon/XAMPP)
-cd C:\laragon\www
-# or
-cd C:\xampp\htdocs
-
-# Clone or download the project
-git clone <repository> grocery-pos
-cd grocery-pos
-```
-
-### Step 2: Create Database
-
-```bash
-# Option A: Using MySQL CLI
-mysql -u root -p
-CREATE DATABASE grocery_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE grocery_pos;
-SOURCE sql/schema.sql;
-EXIT;
-
-# Option B: Using phpMyAdmin
-# 1. Open http://localhost/phpmyadmin
-# 2. Create new database: grocery_pos
-# 3. Import sql/schema.sql file
-```
-
-### Step 3: Configure (if needed)
-
-Edit `includes/config.php` if your MySQL credentials are different:
-
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Empty for Laragon, your password for XAMPP
-define('DB_NAME', 'grocery_pos');
-```
-
-### Step 4: Start Application
-
-1. Ensure Laragon/XAMPP is running
-2. Open browser: `http://localhost/grocery-pos`
-3. Login with demo credentials (see below)
-
-## 🔐 Default Test Credentials
-
-### Admin Account
-- **Username**: `admin`
-- **Password**: `admin123`
-- **Permissions**: Full system access, user management
-
-### Cashier Account
-- **Username**: `cashier`
-- **Password**: `cashier123`
-- **Permissions**: POS, inventory view, sales view
-
-> ⚠️ **Change these passwords in production!**
-
-## 📊 Database Schema
-
-### Users Table
-```sql
-users (
-  user_id INT PRIMARY KEY,
-  name VARCHAR(100),
-  username VARCHAR(50) UNIQUE,
-  password VARCHAR(255) -- bcrypt hashed,
-  role ENUM('admin', 'cashier'),
-  is_active BOOLEAN,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
-```
-
-### Products Table
-```sql
-products (
-  product_id INT PRIMARY KEY,
-  name VARCHAR(150),
-  barcode VARCHAR(50) UNIQUE,
-  price DECIMAL(10, 2),
-  stock INT,
-  expiry_date DATE,
-  category VARCHAR(50),
-  is_active BOOLEAN,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
-```
-
-### Sales Table
-```sql
-sales (
-  sale_id INT PRIMARY KEY,
-  date DATETIME,
-  total DECIMAL(12, 2),
-  payment_method ENUM('cash', 'card', 'check'),
-  amount_paid DECIMAL(12, 2),
-  change_amount DECIMAL(12, 2),
-  cashier_id INT FOREIGN KEY,
-  notes TEXT,
-  created_at TIMESTAMP
-)
-```
-
-### Sale Items Table
-```sql
-sale_items (
-  id INT PRIMARY KEY,
-  sale_id INT FOREIGN KEY,
-  product_id INT FOREIGN KEY,
-  quantity INT,
-  unit_price DECIMAL(10, 2),
-  total_price DECIMAL(12, 2),
-  created_at TIMESTAMP
-)
-```
-
-## 🔒 Security Features
-
-### Implemented
-- ✅ SQL Injection Prevention: Prepared statements with parameterized queries
-- ✅ Password Security: bcrypt hashing with salt
-- ✅ Session Protection: Validates session against database, 1-hour timeout
-- ✅ CSRF Tokens: Ready for implementation in forms
-- ✅ Input Sanitization: htmlspecialchars() for output encoding
-- ✅ XSS Prevention: Proper output escaping
-- ✅ Brute Force Protection: 5 attempts, 15-minute lockout
-- ✅ Database: Transactions, foreign keys, character set validation
-
-### Best Practices
-- Error logging without exposing sensitive info
-- Secure session handling with PHP sessions
-- Role-based access control (RBAC)
-- Principle of least privilege
-
-## 🎨 Frontend Design
-
-### Features
-- **Responsive Design**: Mobile, tablet, desktop
-- **Clean UI**: Modern, minimalist design
-- **Accessibility**: Semantic HTML, WCAG compliant
-- **Color Scheme**:
-  - Primary: Blue (#2563eb)
-  - Success: Green (#16a34a)
-  - Danger: Red (#dc2626)
-  - Warning: Orange (#ea580c)
-
-### Built-in Components
-- Alerts (danger, success, warning, info)
-- Forms with validation UI
-- Buttons (primary, secondary, success, danger)
-- Tables
-- Cards
-- Navigation
-- Sidebar menu
-
-## 📝 Sample Code Usage
-
-### Database Query
-```php
-$db = Database::getInstance();
-
-// SELECT one row
-$user = $db->selectOne(
-    "SELECT * FROM users WHERE user_id = ?",
-    [1],
-    'i'
-);
-
-// SELECT multiple rows
-$users = $db->select(
-    "SELECT * FROM users WHERE role = ?",
-    ['cashier'],
-    's'
-);
-
-// INSERT/UPDATE/DELETE
-$db->execute(
-    "INSERT INTO products (name, price, stock) VALUES (?, ?, ?)",
-    ['Milk', 85.50, 50],
-    'sdi'
-);
-```
-
-### Authentication
-```php
-require_once 'includes/auth.php';
-
-// Check if logged in
-if ($auth->isLoggedIn()) {
-    $user = $auth->getUser();
-    echo "Hello " . $user['name'];
-}
-
-// Check role
-if ($auth->isAdmin()) {
-    // Show admin features
-}
-
-// Require authentication
-Auth::requireLogin();
-
-// Require admin
-Auth::requireAdmin();
-```
-
-## 🧪 Testing
-
-### Test Scenarios
-1. **Login Test**
-   - Valid credentials → Dashboard
-   - Invalid password → Error message
-   - Lockout after 5 attempts → "Too many attempts"
-
-2. **Session Test**
-   - Close browser → Session destroyed
-   - Inactive for 1 hour → Auto logout
-   - Edit user in database → Session invalidated
-
-3. **Security Test**
-   - SQL injection in username field → No impact
-   - Direct URL access without login → Redirect to login
-   - Admin access by cashier → Redirect
-
-## 📱 Browser Support
-
-- Chrome/Chromium 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-- Mobile browsers (iOS Safari, Chrome Android)
-
-## ⚙️ Configuration Options
-
-### Session
-```php
-define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
-define('MAX_LOGIN_ATTEMPTS', 5);
-define('LOCKOUT_DURATION', 900); // 15 minutes
-```
-
-### Database
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'grocery_pos');
-```
-
-### Timezone
-```php
-define('TIMEZONE', 'Asia/Manila'); // Change as needed
-```
-
-## 🐛 Troubleshooting
-
-### "Database connection failed"
-- Check MySQL is running
-- Verify credentials in `includes/config.php`
-- Ensure database exists: `grocery_pos`
-
-### "Login page shows blank or 500 error"
-- Check PHP error logs in `error_log` file
-- Verify all files are in correct directories
-- Ensure PHP 8.0+ is installed
-
-### "Always redirects to login"
-- Clear browser cookies/cache
-- Check `session.save_path` is writable
-- Verify database has users table
-
-## 📚 API Endpoints
-
-### POST `/api/login.php`
-Login user
-- **Parameters**: `username`, `password`
-- **Response**: Redirect to dashboard or error
-
-### GET `/api/logout.php`
-Logout user
-- **Response**: Redirect to login page
-
-## 🤝 Contributing
-
-Steps to contribute:
-1. Create a new branch for your feature
-2. Make changes following code style
-3. Test thoroughly
-4. Submit pull request with description
-
-## 📄 License
-
-This project is provided as-is for educational and commercial use.
-
-## 📞 Support
-
-For issues or questions:
-1. Check the [SETUP.md](SETUP.md) file
-2. Review error logs
-3. Test with demo credentials first
-
-## 🔄 Version History
-
-- **v1.0.0** (2026-02-05): Initial release with authentication and database setup
 
 ---
 
-## 🎯 Next Steps
+## Deployment
 
-After confirming Phase 1 is working:
-1. **Phase 2**: Build POS Checkout System
-2. **Phase 3**: Inventory Management
-3. **Phase 4**: Sales Reports
-4. **Phase 5**: User Management
+### Self-Hosted — Nginx + PHP-FPM (Linux)
 
-Each phase will be built incrementally with testing before proceeding to the next.
+```bash
+sudo apt install nginx php8.2-fpm php8.2-mysqli mysql-server
 
-**Keep the code clean, maintainable, and production-ready!** 🚀
+# Copy project
+sudo cp -r grocery-pos /var/www/grocery-pos
+sudo chown -R www-data:www-data /var/www/grocery-pos
+```
+
+```nginx
+# /etc/nginx/sites-available/grocery-pos
+server {
+    listen 80;
+    server_name pos.yourdomain.com;
+    root /var/www/grocery-pos;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+}
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/grocery-pos /etc/nginx/sites-enabled/
+sudo systemctl reload nginx
+```
+
+### HTTPS with Let's Encrypt
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d pos.yourdomain.com
+```
+
+---
+
+## Future Improvements
+
+- [ ] Barcode scanner hardware integration (USB HID input)
+- [ ] Thermal receipt printer support (ESC/POS protocol)
+- [ ] Low stock alerts / reorder notifications
+- [ ] Supplier and purchase order management
+- [ ] Mobile-responsive POS view for tablet use
+- [ ] Automated daily database backup
+- [ ] Multi-branch / multi-store support
+- [ ] BIR (Bureau of Internal Revenue) compliant receipt formatting
+
+---
+
+## Author
+
+**John Chrisley**
+- GitHub: [@johnchrisley](https://github.com/johnchrisley)
+
+---
+
+## License
+
+MIT License — see [LICENSE](./LICENSE) for details.
